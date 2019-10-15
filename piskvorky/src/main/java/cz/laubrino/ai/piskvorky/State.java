@@ -10,15 +10,18 @@ import java.util.List;
 public class State {
     Board board;
     int length;
+    Field field;
 
     /**
      *
      * @param board
      * @param length piskvorek length, e.g. 5
+     * @param field kdo je na rade
      */
-    public State(Board board, int length) {
+    public State(Board board, int length, Field field) {
         this.board = board;
         this.length = length;
+        this.field = field;
     }
 
     public Board getBoard() {
@@ -63,6 +66,7 @@ public class State {
         }
 
         sb.append(length);
+        sb.append(field);
         sb.append("'");
 
         return sb.toString();

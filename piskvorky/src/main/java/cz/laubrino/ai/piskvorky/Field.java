@@ -14,7 +14,15 @@ public enum Field {
         this.s = s;
     }
 
-
+    Field flip() {
+        if (this == O) {
+            return X;
+        }
+        if (this == X) {
+            return O;
+        }
+        throw new RuntimeException("Cannot flip '" + this + "'");
+    }
 
     @Override
     public String toString() {

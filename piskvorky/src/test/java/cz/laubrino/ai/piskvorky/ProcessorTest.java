@@ -1,5 +1,6 @@
 package cz.laubrino.ai.piskvorky;
 
+import com.google.common.cache.CacheBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -15,9 +16,9 @@ class ProcessorTest {
     @Test
     void isPiskvorek() {
         Board b = new Board(5);
-        State s3 = new State(b, 3);
-        State s6 = new State(b, 6);
-        State s4 = new State(b, 4);
+        State s3 = new State(b, 3, X);
+        State s6 = new State(b, 6, X);
+        State s4 = new State(b, 4, X);
 
         assertFalse(Processor.isPiskvorek(s3).isPresent());
         assertFalse(Processor.isPiskvorek(s6).isPresent());
@@ -62,10 +63,10 @@ class ProcessorTest {
     void testChooseAction() {
         Board b = new Board(3);
         b.put(1,1, O);
-        State s = new State(b, 3);
+        State s = new State(b, 3, X);
 
         Processor p = new Processor();
-        Optional<Action> action = p.chooseAction(s, Processor.qTableX);
+        Optional<Action> action = p.chooseAction(s, CacheBuilder.newBuilder().build());
         assertTrue(action.isPresent());
         System.out.println(action.get());
     }

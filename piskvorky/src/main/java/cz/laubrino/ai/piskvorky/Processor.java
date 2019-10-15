@@ -15,8 +15,7 @@ public class Processor {
     static float REWARD = 1;
     static Cache<String, Optional<Field>> isPiskvorekCache = CacheBuilder.newBuilder().maximumSize(1_000_000).build();
     // kazdy stav ma available actions a kazda ta available action bude mit nejakou Q value
-    static Cache<String, Map<Action, Float>> qTableX = CacheBuilder.newBuilder().maximumSize(10_000_000).build();
-    static Cache<String, Map<Action, Float>> qTableO = CacheBuilder.newBuilder().maximumSize(10_000_000).build();
+    static Cache<String, Map<Action, Float>> qTable = CacheBuilder.newBuilder().maximumSize(10_000_000).build();
 
     /**
      * Check if board is safe.
@@ -100,11 +99,9 @@ public class Processor {
      * @return
      */
     public static Optional<Action> chooseAction(State state, Cache<String, Map<Action, Float>> qTable) {
-        System.out.println("choose action for state: " +state);
         try {
             Map<Action, Float> actionQValues = qTable.get(state.toString(), () -> state.getAvailableActions().stream()
                     .collect(Collectors.toMap(Function.identity(), a -> 0f)));
-            System.out.println("test: " + qTable.getIfPresent(state.toString()));
             Optional<Action> action = actionQValues.entrySet().stream()
                     .max((o1, o2) -> Float.compare(o1.getValue(), o2.getValue()))
                     .map(Map.Entry::getKey);
@@ -114,100 +111,78 @@ public class Processor {
         }
     }
 
-    public static ActionResult step(State state, Action action, Field field) {
-        Optional<Field> piskvorek = isPiskvorek(state);
+    public static ActionResult step(State state, Action action) {
+        State newState = new State(state.board.clone(), state.length,
+                state.field.flip());
+
+        newState.board.put(action.position.x, action.position.y, state.field);
+
+        Optional<Field> piskvorek = isPiskvorek(newState);
         if (piskvorek.isPresent()) {
-            if (piskvorek.get() != field) {
-                return new ActionResult(state, -REWARD, true, "we lost");
+            if (piskvorek.get() == state.field) {
+                return new ActionResult(newState, REWARD, true, "vyhrali " + piskvorek.get());
             } else {
-                return new ActionResult(state, REWARD, true, "vyhrali jsme");
+                return new ActionResult(newState, -REWARD, true, "prohrali " +  piskvorek.get());
             }
         }
 
-        state.board.put(action.position.x, action.position.y, field);
-        piskvorek = isPiskvorek(state);
-        if (piskvorek.isPresent()) {
-            return new ActionResult(state, REWARD, true, "vyhrali jsme");
-        }
-
-        return new ActionResult(state, 0, false, "hra pokracuje");
+        return new ActionResult(newState, 0, false, "hra pokracuje");
     }
 
     public static void main(String[] args) {
         float alpha = 0.4f;     // learning rate
         float gamma = 0.9f;
 
-        Board b = new Board(5);
+        Field field = Field.X;
 
+        for (int j=0;j<100;j++) {
+            Board b = new Board(5);
 
-        State prevObserv = null;
-        Action prevActionX = null;
-        Action prevActionO = null;
+            State state = new State(b, 3, field);
+            State prevState = null;
+            Action prevAction = null;
 
-        State observ = new State(b, 3);
+            for (int i=0;i<25;i++) {
+                System.out.println(state.board);
 
-        Action actionX = chooseAction(observ, qTableX).get();
+                Action action = chooseAction(state, qTable).get();
+                ActionResult actionResult = step(state, action);
 
-        /**
-         * maximum steps possible is board_size * board_size
-         */
-        for (int i=0; i < observ.board.size()*observ.board.size(); i++) {
-            System.out.println(observ.board.toString());
+                if (prevState != null) {
+                    // update Q value for previous [prevState, prevAction]
+                    float qOld = qTable.getIfPresent(prevState.toString()).get(prevAction);
+                    float qNew = qOld;
 
-            ActionResult actionResult = null;
+                    if (actionResult.done) {
+                        qNew += alpha * (actionResult.reward - qOld);
+                    } else {
+                        qNew += alpha * (actionResult.reward + gamma * qTable.getIfPresent(state.toString()).get(action) - qOld);
+                    }
 
-
-
-            actionResult = step(observ, actionX, Field.X);
-            observ = actionResult.state;
-
-            actionX = chooseAction(observ, qTableX).get();
-
-            if (prevObserv != null) {
-                System.out.println("get from Q table for state: " + prevObserv);
-                Map<Action, Float> actionsQValues = qTableX.getIfPresent(prevObserv.toString());
-                System.out.println("prevAction: " + prevActionX);
-                float qOld = actionsQValues.get(prevActionX);
-                float qNew = qOld;
-
-                if(actionResult.done) {
-                    qNew += alpha * (actionResult.reward - qOld);
-                } else {
-                    System.out.println("get from Q table for state: " + observ);
-                    Map<Action, Float> actionsQValues2 = qTableX.getIfPresent(observ.toString());
-                    qNew += alpha * (actionResult.reward + gamma * actionsQValues2.get(actionX) - qOld);
+                    qTable.getIfPresent(prevState.toString()).put(prevAction, qNew);
                 }
 
-                actionsQValues.put(prevActionX, qNew);
+                prevState = state;
+                prevAction = action;
+                state = actionResult.state;
+
+                if (actionResult.done) {
+                    System.out.println("***************** END ***************");
+                    System.out.println(actionResult.info);
+                    System.out.println(actionResult.state.board);
+                    break;
+                }
             }
 
-            prevObserv = observ;
-            prevActionX = actionX;
+            field = field.flip();
 
-
-
-
-//            if ((i&1) == 0) {
-//
-//            } else {
-////                Action actionO = chooseAction(observ, qTableO).get();
-////                actionResult = step(observ, actionO, Field.O);
-//            }
-//
-//            if (actionResult != null && actionResult.done) {
-//                System.out.println("**************  END ******************");
-//                break;
-//            }
-
-            System.out.println(actionResult);
+            printQtable(qTable);
         }
 
-        printCache(qTableX);
-        printCache(qTableO);
 
     }
 
-    public static void printCache(Cache<String, Map<Action, Float>> cache) {
+    public static void printQtable(Cache<String, Map<Action, Float>> cache) {
         cache.asMap().entrySet().stream()
                 .map(s -> s.getKey() + ": " + s.getValue().entrySet().stream().map(x -> x.getKey() + "(" + x.getValue() + ")").collect(Collectors.joining()))
                 .forEach(System.out::println);

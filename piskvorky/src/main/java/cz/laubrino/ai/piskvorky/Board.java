@@ -81,4 +81,14 @@ public class Board {
 
         return sb.toString();
     }
+
+    @Override
+    protected Board clone() {
+        Board b = new Board(board.length);
+        for (int i=0;i<board.length;i++) {
+            System.arraycopy(board[i],0, b.board[i], 0, board.length);
+        }
+
+        return b;
+    }
 }

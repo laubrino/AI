@@ -12,7 +12,7 @@ class StateTest {
     @Test
     void testGetAvailableActions() {
         Board board = new Board(3);
-        State state = new State(board,5);
+        State state = new State(board,5,Field.X);
 
         assertEquals(9, state.getAvailableActions().size());
 
@@ -29,7 +29,7 @@ class StateTest {
     @Test
     void testToString() {
         Board board = new Board(3);
-        State state = new State(board, 5);
+        State state = new State(board, 5, Field.X);
 
         System.out.println(state);
 
