@@ -12,7 +12,9 @@ public class Talon {
     private List<Card> cards;
 
     public Talon(List<Card> cards) {
-        checkTalonValid(cards);
+        if (!checkTalonValid(cards)) {
+            throw new AssertionError("Talon not valid: " + Arrays.deepToString(cards.toArray()));
+        }
 
         this.cards = new ArrayList<>(cards.size());
         this.cards.addAll(cards);
@@ -30,11 +32,9 @@ public class Talon {
         return cards.remove(cards.size() - 1);
     }
 
-    private static void checkTalonValid(List<Card> cards) {
+    private static boolean checkTalonValid(List<Card> cards) {
         Set<Card> uniqueCards = new HashSet<>(cards);
-        if (uniqueCards.size() != cards.size()) {
-            throw new RuntimeException("Talon not valid, multiple cards");
-        }
+        return uniqueCards.size() == cards.size();
     }
 
     public boolean isEmpty() {
@@ -44,5 +44,13 @@ public class Talon {
     @Override
     public String toString() {
         return Arrays.deepToString(cards.toArray());
+    }
+
+    public List<Card> getCards() {
+        return cards;
+    }
+
+    public int size() {
+        return cards.size();
     }
 }

@@ -66,7 +66,7 @@ class ProcessorTest {
         State s = new State(b, 3, X);
 
         Processor p = new Processor();
-        Optional<Action> action = p.chooseAction(s, CacheBuilder.newBuilder().build());
+        Optional<Action> action = p.chooseAction(s, CacheBuilder.newBuilder().build(), 0);
         assertTrue(action.isPresent());
         System.out.println(action.get());
     }

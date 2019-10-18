@@ -44,7 +44,7 @@ class TalonTest {
 
     @Test
     void testInvalidTalon() {
-        assertThrows(RuntimeException.class, () -> new Talon(Arrays.asList(Card.ZELENA_SEDMA, Card.ZELENA_SEDMA)));
+        assertThrows(AssertionError.class, () -> new Talon(Arrays.asList(Card.ZELENA_SEDMA, Card.ZELENA_SEDMA)));
     }
 
     @Test

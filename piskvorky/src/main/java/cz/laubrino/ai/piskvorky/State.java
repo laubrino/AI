@@ -10,7 +10,7 @@ import java.util.List;
 public class State {
     Board board;
     int length;
-    Field field;
+    Field field;        // who is on turn
 
     /**
      *
@@ -59,11 +59,12 @@ public class State {
     public String toString() {
         StringBuilder sb = new StringBuilder("'");
 
-        for (Field[] col : board.get()) {
-            for (int i=0;i<col.length;i++) {
-                sb.append(col[i]);
+        for (int i=0;i<board.size();i++) {
+            for (int j=0;j<board.size();j++) {
+                sb.append(board.get(j,i));
             }
         }
+
 
         sb.append(length);
         sb.append(field);

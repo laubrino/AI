@@ -3,16 +3,20 @@ package cz.laubrino.ai.piskvorky;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author tomas.laubr on 10.10.2019.
  */
 public class Processor {
-    static float REWARD = 1;
+    static float REWARD = 10;
     static Cache<String, Optional<Field>> isPiskvorekCache = CacheBuilder.newBuilder().maximumSize(1_000_000).build();
     // kazdy stav ma available actions a kazda ta available action bude mit nejakou Q value
     static Cache<String, Map<Action, Float>> qTable = CacheBuilder.newBuilder().maximumSize(10_000_000).build();
@@ -98,14 +102,29 @@ public class Processor {
      * @param state
      * @return
      */
-    public static Optional<Action> chooseAction(State state, Cache<String, Map<Action, Float>> qTable) {
+    public static Optional<Action> chooseAction(State state, Cache<String, Map<Action, Float>> qTable, double epsilon) {
         try {
-            Map<Action, Float> actionQValues = qTable.get(state.toString(), () -> state.getAvailableActions().stream()
-                    .collect(Collectors.toMap(Function.identity(), a -> 0f)));
-            Optional<Action> action = actionQValues.entrySet().stream()
-                    .max((o1, o2) -> Float.compare(o1.getValue(), o2.getValue()))
-                    .map(Map.Entry::getKey);
+            Map<Action, Float> actionQValues = qTable
+                    .get(state.toString(), () -> state.getAvailableActions().stream()
+                            .collect(Collectors.toMap(Function.identity(), a -> 0f))
+                    );
+
+            Optional<Action> action;
+            if (Math.random() < epsilon) {
+                // choose random
+                action = actionQValues.entrySet().stream()
+                        .skip(new Random().nextInt(actionQValues.size()))
+                        .map(Map.Entry::getKey)
+                        .findAny();
+            } else {
+                // choose best
+                action = actionQValues.entrySet().stream()
+                        .max((o1, o2) -> Float.compare(o1.getValue(), o2.getValue()))
+                        .map(Map.Entry::getKey);
+            }
+
             return action;
+
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         }
@@ -129,23 +148,24 @@ public class Processor {
         return new ActionResult(newState, 0, false, "hra pokracuje");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException {
         float alpha = 0.4f;     // learning rate
         float gamma = 0.9f;
+        double epsilon = 0.8;
 
         Field field = Field.X;
 
-        for (int j=0;j<100;j++) {
-            Board b = new Board(5);
+        for (int j=0;j<100000;j++) {
+            Board b = new Board(3);
 
-            State state = new State(b, 3, field);
+            State state = new State(b, 2, field);
             State prevState = null;
             Action prevAction = null;
 
             for (int i=0;i<25;i++) {
-                System.out.println(state.board);
+                // System.out.println(state.board);
 
-                Action action = chooseAction(state, qTable).get();
+                Action action = chooseAction(state, qTable, epsilon).get();
                 ActionResult actionResult = step(state, action);
 
                 if (prevState != null) {
@@ -174,18 +194,17 @@ public class Processor {
                 }
             }
 
-            field = field.flip();
-
-            printQtable(qTable);
+            field = field.flip();       // zacina opacny hrac
         }
 
-
+        outputQTable(qTable, new PrintStream(new File("c:/x/qTable3.txt")));
+//        outputQTable(qTable, System.out);
     }
 
-    public static void printQtable(Cache<String, Map<Action, Float>> cache) {
+    public static void outputQTable(Cache<String, Map<Action, Float>> cache, PrintStream ps) {
         cache.asMap().entrySet().stream()
                 .map(s -> s.getKey() + ": " + s.getValue().entrySet().stream().map(x -> x.getKey() + "(" + x.getValue() + ")").collect(Collectors.joining()))
-                .forEach(System.out::println);
+                .forEach(ps::println);
     }
 
 }
