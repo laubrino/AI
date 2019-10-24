@@ -10,28 +10,28 @@ import java.util.stream.Collectors;
  * @author tomas.laubr on 16.10.2019.
  */
 public class Environment {
-    private static final int NUMBER_OF_CARDS = 4;
+    private static final int NUMBER_OF_CARDS = 4;       // pocet karet v ruce
 
     Talon talon;
-    Players players;
+    List<Player> players;
     Player currentPlayer;
     Map<Player, EnumSet<Card>> kartyVRukach;
     OdhazovaciBalicek odhazovaciBalicek;
 
-    public Environment(Players players, Player currentPlayer) {
-        this.players = players;
-        reset(currentPlayer);
+    public Environment(Player currentPlayer, Player... players) {
+        this.players = new ArrayList<>(Arrays.asList(players));
+        resetEnvironment(currentPlayer);
     }
 
-    public void reset(Player currentPlayer) {
-        List<Card> cards = new ArrayList<>(Arrays.asList(Card.values()));
+    public void resetEnvironment(Player currentPlayer) {
+        List<Card> cards = new LinkedList<>(Arrays.asList(Card.values()));
 
         // zamichej karty karty
         Collections.shuffle(cards);
 
         // rozdej karty hracum
         kartyVRukach = new HashMap<>();
-        for (Player p : players.getPlayers()) {
+        for (Player p : players) {
             EnumSet<Card> cardsToHand = EnumSet.noneOf(Card.class);
             for (int i=0;i<NUMBER_OF_CARDS;i++) {
                 cardsToHand.add(cards.remove(0));        // intentional 0
@@ -49,6 +49,17 @@ public class Environment {
         }
 
         distributeObservedState();
+    }
+
+    void nextPlayer(){
+        int i;
+        for (i=0;i<players.size();i++) {
+            if(players.get(i).equals(currentPlayer)) {
+                break;
+            }
+        }
+
+        currentPlayer = players.get(++i%players.size());
     }
 
     /**
@@ -86,7 +97,7 @@ public class Environment {
         // vsem hracum nasetuj observed state, tak jak ho vidi po akci
         distributeObservedState();
 
-        currentPlayer = players.next();
+        nextPlayer();
 
         return stepResult;
     }
@@ -133,7 +144,7 @@ public class Environment {
      * @return
      */
     private List<Integer> countPlayersCards(Player currentPlayer) {
-        return players.players.stream()
+        return players.stream()
                 .filter(player -> !player.equals(currentPlayer))
                 .map(player -> kartyVRukach.get(player).size())
                 .collect(Collectors.toList());

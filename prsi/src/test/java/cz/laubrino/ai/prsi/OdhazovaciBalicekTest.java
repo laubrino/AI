@@ -42,6 +42,14 @@ class OdhazovaciBalicekTest {
         assertEquals(1, talon.getCards().size());
         assertEquals(Card.ZALUDOVA_DESITKA, talon.takeCard());
 
+        odhazovaciBalicek = new OdhazovaciBalicek(Arrays.asList(Card.ZALUDOVA_DESITKA, Card.CERVENE_ESO, Card.ZELENA_OSMA));
+        talon = odhazovaciBalicek.toTalon();
+
+        assertEquals(Card.ZELENA_OSMA, odhazovaciBalicek.peekTopCard());
+        assertEquals(1, odhazovaciBalicek.getCards().size());
+        assertEquals(2, talon.getCards().size());
+        assertEquals(Card.ZALUDOVA_DESITKA, talon.takeCard());
+        assertEquals(Card.CERVENE_ESO, talon.takeCard());
     }
 
     @Test

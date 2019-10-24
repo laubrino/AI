@@ -33,14 +33,14 @@ public class OdhazovaciBalicek {
      * @return
      */
     public Talon toTalon() {
-        List<Card> newTalonCards = new ArrayList<>(32);
-        List<Card> newOdhazovaciBalicek = new ArrayList<>(32);
+        List<Card> newTalonCards = new ArrayList<>();
+        List<Card> newOdhazovaciBalicek = new ArrayList<>();
 
-        for (int i=0;i<cards.size()-2;i++) {
-            newTalonCards.add(cards.get(i));
+        newOdhazovaciBalicek.add(cards.remove(cards.size()-1));
+
+        for (int i=0;i<cards.size();i++) {
+            newTalonCards.add(cards.get(cards.size()-i-1));
         }
-
-        newOdhazovaciBalicek.add(cards.get(cards.size()-1));
 
         cards = newOdhazovaciBalicek;
 

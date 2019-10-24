@@ -18,10 +18,10 @@ public class Main {
         Player karel = new Player("Karel", qTableKarel);
         Player franta = new Player("Franta", qTableFranta);
 
-        Environment env = new Environment(new Players(karel, franta), karel);
+        Environment env = new Environment(karel, karel, franta);
 
-        for (int i=0;i<1000;i++) {
-            env.reset(env.currentPlayer);
+        for (int i=0;i<1;i++) {
+            env.resetEnvironment(env.currentPlayer);
 
             karel.setPrevObservedState(null);
             karel.setPrevAction(null);
