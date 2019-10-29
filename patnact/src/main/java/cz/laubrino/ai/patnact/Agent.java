@@ -11,21 +11,18 @@ public class Agent {
     private static final double EPSILON = 0.1f;
 
     private final QTable qTable;
-    private String s;
     Random randoms = new Random();
 
     public Agent(QTable qTable) {
         this.qTable = qTable;
     }
 
-    synchronized void qLearn(String newS, float r, Action a) {
+    void qLearn(String newS, float r, Action a, String s) {
         if (s != null) {
             float oldQ = qTable.get(s, a);
             float newQ = oldQ + ALPHA*(r + GAMMA * qTable.max(newS) - oldQ);
             qTable.set(s, a, newQ);
         }
-
-        s = newS;
     }
 
     Action chooseAction(String state) {
