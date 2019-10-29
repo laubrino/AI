@@ -1,6 +1,5 @@
 package cz.laubrino.ai.patnact;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -16,8 +15,9 @@ class EnvironmentTest {
         Environment environment = new Environment();
 
         System.out.println(environment);
+        System.out.println(environment.hashString());
 
-        environment.shuffle();
+        environment.shuffle(1000);
 
         System.out.println(environment);
         System.out.println(environment.hashString());
@@ -31,7 +31,7 @@ class EnvironmentTest {
 
         assertTrue(environment.isFinalStateAchieved());
 
-        environment.shuffle();
+        environment.shuffle(1000);
         assertFalse(environment.isFinalStateAchieved());
     }
 }

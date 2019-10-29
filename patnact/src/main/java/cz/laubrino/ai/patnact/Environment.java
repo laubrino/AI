@@ -28,10 +28,10 @@ public class Environment {
     /**
      * randomly move with numbers
      */
-    void shuffle() {
+    void shuffle(int numberOfShuffleMoves) {
         List<Action> actions = Arrays.asList(Action.values());
 
-        for (int i=0;i<1000;i++) {
+        for (int i=0;i<numberOfShuffleMoves;i++) {
             Action action = actions.stream().skip(new Random().nextInt(4)).findAny().get();
             step(action);
         }
@@ -50,7 +50,7 @@ public class Environment {
     EnumSet<Action> getAvailableActions() {
         EnumSet<Action> availableActions = EnumSet.noneOf(Action.class);
 
-        int i=0;
+        int i;
         for (i=0;i<16;i++) {
             if (board[i % 4][i / 4] == 0) {     // find the space
                 break;
@@ -79,7 +79,7 @@ public class Environment {
      * Take no action if invalid move
      * @param action
      */
-    void step(Action action) {
+    ActionResult step(Action action) {
         for (int i=0;i<16;i++) {
             if (board[i%4][i/4] == 0) {     // find the space
                 int j = -100;
@@ -87,33 +87,39 @@ public class Environment {
                     case MOVE_UP:
                         j = i+4;
                         if (j>15) {
-                            return;
+                            return new ActionResult(hashString(), -10f, true);      // invalid move
                         }
                         break;
                     case MOVE_DOWN:
                         j = i-4;
                         if (j<0) {
-                            return;
+                            return new ActionResult(hashString(), -10f, true);
                         }
                         break;
                     case MOVE_LEFT:
                         j = i+1;
                         if (j/4 != i/4 || j>15) {
-                            return;
+                            return new ActionResult(hashString(), -10f, true);
                         }
                         break;
                     case MOVE_RIGHT:
                         j = i-1;
                         if (j/4 != i/4 || j<0) {
-                            return;
+                            return new ActionResult(hashString(), -10f, true);
                         }
                         break;
                 }
 
                 board[i%4][i/4] = board[j%4][j/4];
                 board[j%4][j/4] = 0;
-                return;
+                break;
             }
+        }
+
+        if (isFinalStateAchieved()) {
+            return new ActionResult(hashString(), 10f, true);
+        } else {
+            return new ActionResult(hashString(), 0f, false);
         }
     }
 
@@ -149,9 +155,14 @@ public class Environment {
     public String hashString() {
         StringBuilder sb = new StringBuilder();
         for (int i=0;i<16;i++) {
-            sb.append(board[i%4][i/4]);
+            int number = board[i % 4][i / 4];
+            sb.append(number == 0 ? " " : number);
             sb.append("|");
         }
         return sb.toString();
+    }
+
+    String getState() {
+        return hashString();
     }
 }

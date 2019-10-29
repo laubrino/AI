@@ -2,6 +2,7 @@ package cz.laubrino.ai.patnact;
 
 import java.io.PrintStream;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +12,7 @@ import java.util.Map;
 public class QTable {
     private static final int ACTIONS_COUNT = Action.values().length;
 
-    private Map<String, Float[]> qTable = new HashMap<>();
+    private Map<String, Float[]> qTable = Collections.synchronizedMap(new HashMap<>());
 
     void set(String state, Action action, float value) {
         Float[] values = qTable.computeIfAbsent(state, k -> {
