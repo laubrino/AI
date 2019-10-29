@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
  * @author tomas.laubr on 17.10.2019.
  */
 public class QTable {
-    Cache<String, EnumMap<Action, Float>> qTable = CacheBuilder.newBuilder().maximumSize(10_000_000).build();
+    Cache<String, EnumMap<Action, Float>> qTable = CacheBuilder.newBuilder().build();
 
     EnumMap<Action, Float> get(String observedState) {
         try {

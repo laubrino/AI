@@ -8,8 +8,7 @@ import java.io.PrintStream;
  * @author tomas.laubr on 17.10.2019.
  */
 public class Main {
-    public static final float ALPHA = 0.4f;
-    public static final float GAMMA = 0.9f;
+    public static final boolean STOP_ON_ERROR = true;
 
     public static void main(String[] args) throws FileNotFoundException {
         QTable qTableKarel = new QTable();
@@ -20,48 +19,44 @@ public class Main {
 
         Environment env = new Environment(karel, karel, franta);
 
-        for (int i=0;i<1;i++) {
+        for (int i=0;i<100;i++) {
             env.resetEnvironment(env.currentPlayer);
 
-            karel.setPrevObservedState(null);
-            karel.setPrevAction(null);
-            franta.setPrevAction(null);
-            franta.setPrevObservedState(null);
             boolean finished = false;
+            boolean shitHappend = false;
+
+            Action action = env.getCurrentPlayer().chooseAction(env.getAvailableActions());
 
             for (int n=0;n<1000;n++) {
                 try {
 //                System.out.println(env.toString());
 
-                    Player currentPlayer = env.getCurrentPlayer();
-
-                    Action action = currentPlayer.chooseAction(env.getAvailableActions());
-
                     StepResult stepResult = env.step(action);
 
-                    currentPlayer.getPrevObservedState().ifPresent(os -> {
-                        float qOld = currentPlayer.getqTable().get(os.toString(), currentPlayer.getPrevAction().get());
-                        float qNew = qOld;
+                    Player currentPlayer = env.getCurrentPlayer();
 
-                        if (stepResult.done) {
-                            qNew += ALPHA * (stepResult.getReward() - qOld);
-                        } else {
-                            qNew += ALPHA * (stepResult.getReward() + GAMMA * currentPlayer.getqTable().get(stepResult.getObservedState().toString(), action) - qOld);
-                        }
+                    currentPlayer.learn(stepResult.getReward());
 
-                        currentPlayer.getqTable().put(os.toString(), currentPlayer.getPrevAction().get(), qNew);
-                    });
+                    env.nextPlayer();
 
-                    currentPlayer.setPrevObservedState(stepResult.getObservedState());
-                    currentPlayer.setPrevAction(action);
+                    Action action2 = currentPlayer.chooseAction(env.getAvailableActions());
+
+                    currentPlayer.setAction(action2);
+                    currentPlayer.setObservedState();
 
                     if (stepResult.done) {
                         System.out.println("Konec po " + n + " krocich");
                         finished = true;
                         break;
                     }
+
+                    env.nextPlayer();
                 } catch (Exception e) {
                     e.printStackTrace();
+                    System.err.println(env.toString());
+                    env.players.forEach(System.err::println);
+                    System.err.println("Choosen action: " + action);
+                    shitHappend = true;
                     break;
                 }
             }
@@ -71,6 +66,10 @@ public class Main {
             }
 
             System.out.println(env.toString());
+
+            if (shitHappend && STOP_ON_ERROR) {
+                break;
+            }
         }
 
         System.out.print("Saving qTables.....");

@@ -13,16 +13,16 @@ import java.util.stream.Collectors;
 public class ObservedState {
     OdhazovaciBalicek odhazovaciBalicek;
     Set<Card> kartyVRuce;
-    List<Integer> playersCardCounts;     // pocet karet v rukach ostatnich hracu;
+    List<Integer> otherPlayersCardCounts;     // pocet karet v rukach ostatnich hracu;
     String stringSnapshot;
 
-    public ObservedState(OdhazovaciBalicek odhazovaciBalicek, Set<Card> kartyVRuce, List<Integer> playersCardCounts) {
+    public ObservedState(OdhazovaciBalicek odhazovaciBalicek, Set<Card> kartyVRuce, List<Integer> otherPlayersCardCounts) {
         this.odhazovaciBalicek = new OdhazovaciBalicek(odhazovaciBalicek.getCards());
 
         this.kartyVRuce = EnumSet.noneOf(Card.class);
         this.kartyVRuce.addAll(kartyVRuce);
 
-        this.playersCardCounts = playersCardCounts;
+        this.otherPlayersCardCounts = otherPlayersCardCounts;
         this.stringSnapshot = asString();
     }
 
@@ -32,7 +32,7 @@ public class ObservedState {
             sb.append(card.toString());
         }
         sb.append("|").append(odhazovaciBalicek.peekTopCard());
-        sb.append("|").append(playersCardCounts.stream().map(count -> Integer.toString(count)).collect(Collectors.joining(",")));
+        sb.append("|").append(otherPlayersCardCounts.stream().map(count -> Boolean.toString(count > 1)).collect(Collectors.joining(",")));  // "true" if more than 1 card
         return sb.toString();
     }
 

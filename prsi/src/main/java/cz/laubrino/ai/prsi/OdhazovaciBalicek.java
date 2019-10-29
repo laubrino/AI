@@ -55,7 +55,7 @@ public class OdhazovaciBalicek {
     public OdhazovaciBalicek putCard(Card card) {
         cards.add(card);
         if (!checkValid(cards)) {
-            throw new AssertionError(Arrays.deepToString(cards.toArray()));
+            throw new IllegalStateException(card + ":" + Arrays.deepToString(cards.toArray()));
         }
         return this;
     }

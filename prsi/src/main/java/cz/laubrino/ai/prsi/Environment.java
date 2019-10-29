@@ -83,25 +83,30 @@ public class Environment {
             }
         } else {
             Card card = action.getCard();     // budeme hrat tuto kartu z ruky
-            kartyVRukach.get(currentPlayer).remove(card);
+            boolean removed = kartyVRukach.get(currentPlayer).remove(card);
+            if (!removed) {
+                throw new AssertionError();
+            }
             odhazovaciBalicek.putCard(card);
 
             ObservedState observedState = new ObservedState(odhazovaciBalicek, kartyVRukach.get(currentPlayer), countPlayersCards(currentPlayer));
             if (kartyVRukach.get(currentPlayer).isEmpty()) {
                 stepResult = new StepResult(observedState, 100f, true, "Odhozena posledni karta, vyhrali jsme");
             } else {
-                stepResult = new StepResult(observedState, 1f, false, "Hra pokracuje");
+                stepResult = new StepResult(observedState, 0f, false, "Hra pokracuje");
             }
         }
 
         // vsem hracum nasetuj observed state, tak jak ho vidi po akci
         distributeObservedState();
 
-        nextPlayer();
-
         return stepResult;
     }
 
+    /**
+     *
+     * @return all available actions which a current player can do (taking into account his cards in hand)
+     */
     EnumSet<Action> getAvailableActions() {
         EnumSet<Action> availableActions = EnumSet.noneOf(Action.class);
 
