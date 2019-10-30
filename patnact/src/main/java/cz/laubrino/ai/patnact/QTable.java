@@ -12,9 +12,9 @@ import java.util.Map;
 public class QTable {
     private static final int ACTIONS_COUNT = Action.values().length;
 
-    private Map<String, Float[]> qTable = Collections.synchronizedMap(new HashMap<>());
+    private Map<State, Float[]> qTable = Collections.synchronizedMap(new HashMap<>());
 
-    void set(String state, Action action, float value) {
+    void set(State state, Action action, float value) {
         Float[] values = qTable.computeIfAbsent(state, k -> {
             Float[] vals = new Float[ACTIONS_COUNT];
             Arrays.fill(vals, 0f);
@@ -23,7 +23,7 @@ public class QTable {
         values[action.ordinal()] = value;
     }
 
-    float get(String state, Action action) {
+    float get(State state, Action action) {
         Float[] values = qTable.computeIfAbsent(state, k -> {
             Float[] vals = new Float[ACTIONS_COUNT];
             Arrays.fill(vals, 0f);
@@ -32,7 +32,7 @@ public class QTable {
         return values[action.ordinal()];
     }
 
-    float max(String state) {
+    float max(State state) {
         Float[] values = qTable.computeIfAbsent(state, k -> {
             Float[] vals = new Float[ACTIONS_COUNT];
             Arrays.fill(vals, 0f);
@@ -42,7 +42,7 @@ public class QTable {
         return Arrays.stream(values).max(Float::compareTo).orElseThrow(() -> new RuntimeException("There has to be one..."));
     }
 
-    Action maxAction(String state) {
+    Action maxAction(State state) {
         Float[] values = qTable.computeIfAbsent(state, k -> {
             Float[] vals = new Float[ACTIONS_COUNT];
             Arrays.fill(vals, 0f);

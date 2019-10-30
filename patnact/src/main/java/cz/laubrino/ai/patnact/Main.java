@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class Main {
     private static final String PATH = "c:/x/patnact-qtable.txt";
-    private static final int EPISODES = 100_000_000;
+    private static final int EPISODES = 10_000_000;
     private static final int STEPS = 1000;
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
@@ -79,7 +79,7 @@ public class Main {
                 lastTimePrint.set(System.currentTimeMillis());
             }
 
-            String s = null;
+            State s = null;
 
             for (int i=0;i<STEPS;i++) {
                 Action action = agent.chooseAction(environment.getState());

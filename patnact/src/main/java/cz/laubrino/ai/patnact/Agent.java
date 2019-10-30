@@ -17,7 +17,7 @@ public class Agent {
         this.qTable = qTable;
     }
 
-    void qLearn(String newS, float r, Action a, String s) {
+    void qLearn(State newS, float r, Action a, State s) {
         if (s != null) {
             float oldQ = qTable.get(s, a);
             float newQ = oldQ + ALPHA*(r + GAMMA * qTable.max(newS) - oldQ);
@@ -25,7 +25,7 @@ public class Agent {
         }
     }
 
-    Action chooseAction(String state) {
+    Action chooseAction(State state) {
         if (randoms.nextDouble() < EPSILON) {       // take random action
             return Action.values()[randoms.nextInt(Action.values().length)];
         } else {

@@ -10,6 +10,7 @@ import java.util.Random;
  */
 public class Environment {
     byte[][] board = new byte[4][4];
+    private Random randoms = new Random();
 
     public Environment() {
         reset();
@@ -29,11 +30,8 @@ public class Environment {
      * randomly move with numbers
      */
     void shuffle(int numberOfShuffleMoves) {
-        List<Action> actions = Arrays.asList(Action.values());
-
         for (int i=0;i<numberOfShuffleMoves;i++) {
-            Action action = actions.stream().skip(new Random().nextInt(4)).findAny().get();
-            step(action);
+            step(Action.values()[randoms.nextInt(4)]);
         }
     }
 
@@ -150,12 +148,12 @@ public class Environment {
         return sb.toString();
     }
 
-    String getState() {
+    State getState() {
         byte[] bytes = new byte[16];
         System.arraycopy(board[0], 0, bytes, 0, 4);
         System.arraycopy(board[1], 0, bytes, 4, 4);
         System.arraycopy(board[2], 0, bytes, 8, 4);
         System.arraycopy(board[3], 0, bytes, 12, 4);
-        return String.valueOf(bytes);
+        return new State(bytes);
     }
 }

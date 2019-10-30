@@ -6,17 +6,17 @@ import java.util.Arrays;
  * @author tomas.laubr on 29.10.2019.
  */
 public class ActionResult {
-    final String state;
+    final State state;
     final float reward;
     final boolean done;
 
-    public ActionResult(String state, float reward, boolean done) {
+    public ActionResult(State state, float reward, boolean done) {
         this.state = state;
         this.reward = reward;
         this.done = done;
     }
 
-    public String getState() {
+    public State getState() {
         return state;
     }
 
