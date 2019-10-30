@@ -15,12 +15,12 @@ class EnvironmentTest {
         Environment environment = new Environment();
 
         System.out.println(environment);
-        System.out.println(environment.hashString());
+        System.out.println(environment.getState());
 
         environment.shuffle(1000);
 
         System.out.println(environment);
-        System.out.println(environment.hashString());
+        System.out.println(environment.getState());
         System.out.println(environment.getAvailableActions());
 
     }

@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class Main {
     private static final String PATH = "c:/x/patnact-qtable.txt";
-    private static final int EPISODES = 1_000_000;
+    private static final int EPISODES = 100_000_000;
     private static final int STEPS = 1000;
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
@@ -24,44 +24,12 @@ public class Main {
         List<Integer> illegalMoves = Collections.synchronizedList(new ArrayList<>());
 
         AtomicLong lastTimePrint = new AtomicLong(System.currentTimeMillis());
-
         AtomicInteger successCount = new AtomicInteger(0);
-
-//        for (int n = 0; n < EPISODES; n++) {
-//            Environment environment = new Environment();
-//            environment.reset();
-//            environment.shuffle(100);
-//
-//            if (System.currentTimeMillis() > (lastTimePrint + 1_000)) {
-//                System.out.println("n = " + n);
-//                System.out.println(environment);
-//                lastTimePrint = System.currentTimeMillis();
-//            }
-//
-//            for (int i=0;i<STEPS;i++) {
-//                Action action = agent.chooseAction(environment.getState());
-//
-//                ActionResult actionResult = environment.step(action);
-//
-//                agent.qLearn(actionResult.getState(), actionResult.getReward(), action);
-//
-//                if (actionResult.isDone()) {
-//                    if (actionResult.getReward() > 0) {
-//                        successCount++;
-//                    }
-//                    break;
-//                }
-//            }
-//        }
-//
-//        System.out.println("**************** Found " + successCount + " solutions out of " + EPISODES);
-//        successCount = 0;
-
         AtomicInteger illegalMovesCount = new AtomicInteger(0);
 
         ExecutorService executorService;// = Executors.newFixedThreadPool(1);
         executorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>());
+                new ExecutorBlockingQueue<>(1000));
 
         for (int n = 0; n < EPISODES; n++) {
             Worker worker = new Worker(lastTimePrint, agent, illegalMoves, illegalMovesCount, successCount, n);
@@ -75,9 +43,9 @@ public class Main {
 
         System.out.println("Illegal moves: " + Arrays.deepToString(illegalMoves.toArray()));
 
-        System.out.print("Saving qTable to " + PATH + "....");
-        qTable.print(new PrintStream(PATH));
-        System.out.println("done.");
+//        System.out.print("Saving qTable to " + PATH + "....");
+//        qTable.print(new PrintStream(PATH));
+//        System.out.println("done.");
     }
 
     private static class Worker implements Runnable {

@@ -9,7 +9,7 @@ import java.util.Random;
  * @author tomas.laubr on 24.10.2019.
  */
 public class Environment {
-    int[][] board = new int[4][4];
+    byte[][] board = new byte[4][4];
 
     public Environment() {
         reset();
@@ -20,8 +20,8 @@ public class Environment {
      */
     void reset() {
         board[3][3] = 0;
-        for (int i=0;i<15;i++) {
-            board[i%4][i/4] = i+1;
+        for (byte i=0;i<15;i++) {
+            board[i&3][i/4] = (byte)(i+1);
         }
     }
 
@@ -39,7 +39,7 @@ public class Environment {
 
     boolean isFinalStateAchieved() {
         for (int i=0;i<15;i++) {
-            if (board[i%4][i/4] != i+1) {
+            if (board[i&3][i/4] != i+1) {
                 return false;
             }
         }
@@ -52,15 +52,15 @@ public class Environment {
 
         int i;
         for (i=0;i<16;i++) {
-            if (board[i % 4][i / 4] == 0) {     // find the space
+            if (board[i & 3][i / 4] == 0) {     // find the space
                 break;
             }
         }
-        if (i%4 > 0) {
+        if ((i&3) > 0) {
             availableActions.add(Action.MOVE_RIGHT);
         }
 
-        if (i%4 < 3) {
+        if ((i&3) < 3) {
             availableActions.add(Action.MOVE_LEFT);
         }
 
@@ -81,45 +81,47 @@ public class Environment {
      */
     ActionResult step(Action action) {
         for (int i=0;i<16;i++) {
-            if (board[i%4][i/4] == 0) {     // find the space
-                int j = -100;
+            if (board[i&3][i/4] == 0) {     // find the space
+                int j;
                 switch (action) {
                     case MOVE_UP:
                         j = i+4;
                         if (j>15) {
-                            return new ActionResult(hashString(), -10f, true);      // invalid move
+                            return new ActionResult(getState(), -10f, true);      // invalid move
                         }
                         break;
                     case MOVE_DOWN:
                         j = i-4;
                         if (j<0) {
-                            return new ActionResult(hashString(), -10f, true);
+                            return new ActionResult(getState(), -10f, true);
                         }
                         break;
                     case MOVE_LEFT:
                         j = i+1;
                         if (j/4 != i/4 || j>15) {
-                            return new ActionResult(hashString(), -10f, true);
+                            return new ActionResult(getState(), -10f, true);
                         }
                         break;
                     case MOVE_RIGHT:
                         j = i-1;
                         if (j/4 != i/4 || j<0) {
-                            return new ActionResult(hashString(), -10f, true);
+                            return new ActionResult(getState(), -10f, true);
                         }
                         break;
+                    default:
+                        throw new RuntimeException("WTF? " + action);
                 }
 
-                board[i%4][i/4] = board[j%4][j/4];
-                board[j%4][j/4] = 0;
+                board[i&3][i/4] = board[j&3][j/4];
+                board[j&3][j/4] = 0;
                 break;
             }
         }
 
         if (isFinalStateAchieved()) {
-            return new ActionResult(hashString(), 10f, true);
+            return new ActionResult(getState(), 10f, true);
         } else {
-            return new ActionResult(hashString(), 0f, false);
+            return new ActionResult(getState(), 0f, false);
         }
     }
 
@@ -130,15 +132,15 @@ public class Environment {
         sb.append("-------------");
 
         for (int i=0;i<16;i++) {
-            if (i%4 == 0) {
+            if ((i&3) == 0) {
                 sb.append("\n|");
             }
 
-            val = board[i%4][i/4];
+            val = board[i&3][i/4];
             if (val == 0) {
                 sb.append("  ");
             } else {
-                sb.append(String.format("%2d", board[i%4][i/4]));
+                sb.append(String.format("%2d", board[i&3][i/4]));
             }
             sb.append("|");
         }
@@ -148,21 +150,12 @@ public class Environment {
         return sb.toString();
     }
 
-    /**
-     * String representation of board
-     * @return
-     */
-    public String hashString() {
-        StringBuilder sb = new StringBuilder();
-        for (int i=0;i<16;i++) {
-            int number = board[i % 4][i / 4];
-            sb.append(number == 0 ? " " : number);
-            sb.append("|");
-        }
-        return sb.toString();
-    }
-
     String getState() {
-        return hashString();
+        byte[] bytes = new byte[16];
+        System.arraycopy(board[0], 0, bytes, 0, 4);
+        System.arraycopy(board[1], 0, bytes, 4, 4);
+        System.arraycopy(board[2], 0, bytes, 8, 4);
+        System.arraycopy(board[3], 0, bytes, 12, 4);
+        return String.valueOf(bytes);
     }
 }
