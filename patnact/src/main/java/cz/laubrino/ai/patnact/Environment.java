@@ -22,7 +22,7 @@ public class Environment {
     void reset() {
         board[3][3] = 0;
         for (byte i=0;i<15;i++) {
-            board[i&3][i/4] = (byte)(i+1);
+            board[i/4][i&3] = (byte)(i+1);
         }
     }
 
@@ -36,8 +36,10 @@ public class Environment {
     }
 
     boolean isFinalStateAchieved() {
+//        return board[0][0] == 1;
+
         for (int i=0;i<15;i++) {
-            if (board[i&3][i/4] != i+1) {
+            if (board[i/4][i&3] != i+1) {
                 return false;
             }
         }
@@ -50,7 +52,7 @@ public class Environment {
 
         int i;
         for (i=0;i<16;i++) {
-            if (board[i & 3][i / 4] == 0) {     // find the space
+            if (board[i / 4][i & 3] == 0) {     // find the space
                 break;
             }
         }
@@ -79,7 +81,7 @@ public class Environment {
      */
     ActionResult step(Action action) {
         for (int i=0;i<16;i++) {
-            if (board[i&3][i/4] == 0) {     // find the space
+            if (board[i/4][i&3] == 0) {     // find the space
                 int j;
                 switch (action) {
                     case MOVE_UP:
@@ -110,8 +112,8 @@ public class Environment {
                         throw new RuntimeException("WTF? " + action);
                 }
 
-                board[i&3][i/4] = board[j&3][j/4];
-                board[j&3][j/4] = 0;
+                board[i/4][i&3] = board[j/4][j&3];
+                board[j/4][j&3] = 0;
                 break;
             }
         }
@@ -134,11 +136,11 @@ public class Environment {
                 sb.append("\n|");
             }
 
-            val = board[i&3][i/4];
+            val = board[i/4][i&3];
             if (val == 0) {
                 sb.append("  ");
             } else {
-                sb.append(String.format("%2d", board[i&3][i/4]));
+                sb.append(String.format("%2d", board[i/4][i&3]));
             }
             sb.append("|");
         }

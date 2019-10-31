@@ -1,7 +1,6 @@
 package cz.laubrino.ai.patnact;
 
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,60 +8,74 @@ import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
  * @author tomas.laubr on 29.10.2019.
  */
 public class Main {
-    private static final String PATH = "c:/x/patnact-qtable.txt";
-    private static final int EPISODES = 1_000_000;
-    private static final int STEPS = 1000;
-    private static final int SHUFFLE_STEPS = 1000;
+    private static final String PATH = "c:/x/patnact-qtable.zip";
+    private static final long EPISODES = 1_000_000_000;
+    private static final int MAX_STEPS_PER_EPISODES = 1000;
+    private static final int SHUFFLE_STEPS = 20;
 
-    public static void main(String[] args) throws FileNotFoundException, InterruptedException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         QTable qTable = new QTable();
         Agent agent = new Agent(qTable);
         List<Integer> illegalMoves = Collections.synchronizedList(new ArrayList<>());
+        List<Integer> successed = Collections.synchronizedList(new ArrayList<>());
 
         AtomicLong lastTimePrint = new AtomicLong(System.currentTimeMillis());
-        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger totalSuccessCount = new AtomicInteger(0);
         AtomicInteger illegalMovesCount = new AtomicInteger(0);
+        AtomicInteger successCount = new AtomicInteger(0);
 
         ExecutorService executorService;// = Executors.newFixedThreadPool(1);
         executorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
                 new ExecutorBlockingQueue<>(1000));
 
         for (int n = 0; n < EPISODES; n++) {
-            Worker worker = new Worker(lastTimePrint, agent, illegalMoves, illegalMovesCount, successCount, n);
+            Worker worker = new Worker(lastTimePrint, agent, illegalMoves, illegalMovesCount, totalSuccessCount, n, successed, successCount);
             executorService.submit(worker);
         }
 
         executorService.shutdown();
         executorService.awaitTermination(1, TimeUnit.DAYS);
 
-        System.out.println("**************** Found " + successCount.get() + " solutions out of " + EPISODES);
+        System.out.println("**************** Found " + totalSuccessCount.get() + " solutions out of " + EPISODES);
 
         System.out.println("Illegal moves: " + Arrays.deepToString(illegalMoves.toArray()));
+        System.out.println("Found solutions: " + Arrays.deepToString(successed.toArray()));
 
-//        System.out.print("Saving qTable to " + PATH + "....");
-//        qTable.print(new PrintStream(PATH));
-//        System.out.println("done.");
+        System.out.print("Saving qTable to " + PATH + "....");
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(PATH)));
+        zipOutputStream.putNextEntry(new ZipEntry("table.txt"));
+        PrintStream printStream = new PrintStream((zipOutputStream));
+        qTable.print(printStream);
+        zipOutputStream.closeEntry();
+        printStream.close();
+        System.out.println("done.");
     }
 
     private static class Worker implements Runnable {
         private final AtomicLong lastTimePrint;
         private final Agent agent;
         private final List<Integer> illegalMoves;
+        private final List<Integer> successes;
         private final AtomicInteger illegalMovesCount;
+        private final AtomicInteger totalSuccessCount;
         private final AtomicInteger successCount;
 
-        public Worker(AtomicLong lastTimePrint, Agent agent, List<Integer> illegalMoves, AtomicInteger illegalMovesCount, AtomicInteger successCount, int n) {
+        public Worker(AtomicLong lastTimePrint, Agent agent, List<Integer> illegalMoves, AtomicInteger illegalMovesCount, AtomicInteger totalSuccessCount, int n, List<Integer> successes, AtomicInteger successCount) {
             this.lastTimePrint = lastTimePrint;
             this.agent = agent;
             this.illegalMoves = illegalMoves;
             this.illegalMovesCount = illegalMovesCount;
-            this.successCount = successCount;
+            this.totalSuccessCount = totalSuccessCount;
             this.n = n;
+            this.successes = successes;
+            this.successCount = successCount;
         }
 
         private final int n;
@@ -82,7 +95,7 @@ public class Main {
 
             State s = null;
 
-            for (int i=0;i<STEPS;i++) {
+            for (long i = 0; i< MAX_STEPS_PER_EPISODES; i++) {
                 Action action = agent.chooseAction(environment.getState());
 
                 ActionResult actionResult = environment.step(action);
@@ -96,9 +109,12 @@ public class Main {
                         illegalMovesCount.incrementAndGet();
                     }
                     if (actionResult.getReward() > 0) {
-                        System.out.println("******************************************************************");
-                        System.out.println("*********************  B I N G O  ********************************");
-                        System.out.println("******************************************************************");
+//                        System.out.println(
+//                                "******************************************************************\n" +
+//                                "*********************  B I N G O  ********************************\n" +
+//                                environment+
+//                                "******************************************************************");
+                        totalSuccessCount.incrementAndGet();
                         successCount.incrementAndGet();
                     }
                     break;
@@ -107,6 +123,7 @@ public class Main {
 
             if (n % 1000 == 0) {
                 illegalMoves.add(illegalMovesCount.getAndSet(0));
+                successes.add(successCount.getAndSet(0));
             }
 
         }

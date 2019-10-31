@@ -1,5 +1,8 @@
 package cz.laubrino.ai.patnact;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,6 +62,17 @@ public class QTable {
         }
 
         return maxAction;
+    }
+
+    void output(DataOutputStream os) throws IOException {
+        for (Map.Entry<State, Float[]> entry : qTable.entrySet()) {
+            State state = entry.getKey();
+            Float[] values = entry.getValue();
+            os.writeChars(state.toString());
+            os.writeChars(": ");
+            os.writeChars(Arrays.deepToString(values));
+            os.writeChars("\n");
+        }
     }
 
     void print(PrintStream ps) {
