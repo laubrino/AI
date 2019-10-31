@@ -15,8 +15,9 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class Main {
     private static final String PATH = "c:/x/patnact-qtable.txt";
-    private static final int EPISODES = 10_000_000;
+    private static final int EPISODES = 1_000_000;
     private static final int STEPS = 1000;
+    private static final int SHUFFLE_STEPS = 1000;
 
     public static void main(String[] args) throws FileNotFoundException, InterruptedException {
         QTable qTable = new QTable();
@@ -71,7 +72,7 @@ public class Main {
         public void run() {
             Environment environment = new Environment();
             environment.reset();
-            environment.shuffle(1000);
+            environment.shuffle(SHUFFLE_STEPS);
 
             if (System.currentTimeMillis() > (lastTimePrint.get() + 1_000)) {
                 System.out.println("Iteration n = " + n);
