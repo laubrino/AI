@@ -4,20 +4,20 @@ package cz.laubrino.ai.reversi;
  * @author tomas.laubr on 1.11.2019.
  */
 public class StepResult {
-    private final State s;
+    private final State state;
     private final float reward;
     private final boolean done;
     private final Reason reason;
 
-    public StepResult(State s, float reward, boolean done, Reason reason) {
-        this.s = s;
+    public StepResult(State state, float reward, boolean done, Reason reason) {
+        this.state = state;
         this.reward = reward;
         this.done = done;
         this.reason = reason;
     }
 
-    public State getS() {
-        return s;
+    public State getState() {
+        return state;
     }
 
     public float getReward() {
@@ -35,7 +35,7 @@ public class StepResult {
     @Override
     public String toString() {
         return "StepResult{" +
-                "s=" + s +
+                "s=" + state +
                 ", reward=" + reward +
                 ", done=" + done +
                 ", reason=" + reason +

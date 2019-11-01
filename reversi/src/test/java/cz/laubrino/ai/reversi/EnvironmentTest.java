@@ -1,5 +1,6 @@
 package cz.laubrino.ai.reversi;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -20,10 +21,9 @@ class EnvironmentTest {
 
     @Test
     void testInvalidStep() {
+        Assumptions.assumeTrue(Environment.BOARD_SIZE == 8);
+
         Environment environment = new Environment();
-
-        System.out.println(environment);
-
         StepResult stepResult;
 
         for (int[] coordinate : new int[][]{{0,0}, {2,2}, {3,2}, {5,2}, {5,4}, {4,5}, {2,5}, {2,3}}) {
@@ -36,18 +36,21 @@ class EnvironmentTest {
 
     @Test
     void testStep(){
+        Assumptions.assumeTrue(Environment.BOARD_SIZE == 8);
+
         Environment environment = new Environment();
+        StepResult stepResult = null;
 
-        System.out.println(environment);
-
-        StepResult stepResult;
-
-        for (Action action : Arrays.asList(new Action(3,2, BLACK), new Action(2,4,WHITE))) {
+        for (Action action : Arrays.asList(new Action(2,4, WHITE), new Action(2,5, BLACK), new Action(4,2,WHITE),
+                new Action(2,3,BLACK), new Action(1,6,WHITE), new Action(2,6,BLACK), new Action(3,6,WHITE),
+                new Action(0,7,BLACK), new Action(0,6,WHITE), new Action(2,7,BLACK), new Action(1,3,WHITE),
+                new Action(5,4,BLACK), new Action(4,5,WHITE), new Action(0,5,BLACK), new Action(3,5,WHITE))) {
             stepResult = environment.step(action);
             assertFalse(stepResult.isDone());
             assertEquals(StepResult.Reason.CONTINUE, stepResult.getReason());
-            System.out.println(environment);
         }
+
+        assertEquals("[........|........|....o...|.oooo...|..ooox..|x.xoo...|xxxo....|x.x.....]", stepResult.getState().toString());
 
     }
 }
