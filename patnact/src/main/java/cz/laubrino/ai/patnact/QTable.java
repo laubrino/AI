@@ -4,10 +4,8 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * @author tomas.laubr on 29.10.2019.
@@ -16,6 +14,7 @@ public class QTable {
     private static final int ACTIONS_COUNT = Action.values().length;
 
     private Map<State, Float[]> qTable = Collections.synchronizedMap(new HashMap<>());
+    private Random randoms = new Random();
 
     void set(State state, Action action, float value) {
         Float[] values = qTable.computeIfAbsent(state, k -> {
@@ -52,16 +51,16 @@ public class QTable {
             return vals;
         });
 
-        float maxValue = -Float.MAX_VALUE;
-        Action maxAction = Action.MOVE_LEFT;
-        for (int i=0; i<values.length;i++) {
-            if (values[i] > maxValue) {
-                maxValue = values[i];
-                maxAction = Action.values()[i];
+        float maxValue = Stream.of(values).max(Float::compareTo).get();
+
+        List<Action> maxActions = new ArrayList<>();
+        for (int i=0;i<Action.values().length;i++) {
+            if (values[i] == maxValue) {
+                maxActions.add(Action.values()[i]);
             }
         }
 
-        return maxAction;
+        return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst().get();
     }
 
     void output(DataOutputStream os) throws IOException {

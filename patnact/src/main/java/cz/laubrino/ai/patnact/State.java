@@ -12,6 +12,10 @@ public class State {
         this.bytes = bytes;
     }
 
+    /**
+     * For testing only
+     * @param s
+     */
     public State(String s) {
         this.bytes = s.getBytes();
     }

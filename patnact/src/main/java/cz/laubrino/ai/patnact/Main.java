@@ -16,9 +16,9 @@ import java.util.zip.ZipOutputStream;
  */
 public class Main {
     private static final String PATH = "c:/x/patnact-qtable.zip";
-    private static final long EPISODES = 1_000_000_000;
-    private static final int MAX_STEPS_PER_EPISODES = 1000;
-    private static final int SHUFFLE_STEPS = 20;
+    private static final long EPISODES = 5_000_000;
+    private static final int MAX_STEPS_PER_EPISODE = 1000;
+    private static final int SHUFFLE_STEPS = 100;
 
     public static void main(String[] args) throws IOException, InterruptedException {
         QTable qTable = new QTable();
@@ -48,6 +48,11 @@ public class Main {
         System.out.println("Illegal moves: " + Arrays.deepToString(illegalMoves.toArray()));
         System.out.println("Found solutions: " + Arrays.deepToString(successed.toArray()));
 
+        //saveToDisk(qTable);
+
+    }
+
+    static void saveToDisk(QTable qTable) throws IOException {
         System.out.print("Saving qTable to " + PATH + "....");
         ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(PATH)));
         zipOutputStream.putNextEntry(new ZipEntry("table.txt"));
@@ -95,7 +100,7 @@ public class Main {
 
             State s = null;
 
-            for (long i = 0; i< MAX_STEPS_PER_EPISODES; i++) {
+            for (long i = 0; i< MAX_STEPS_PER_EPISODE; i++) {
                 Action action = agent.chooseAction(environment.getState());
 
                 ActionResult actionResult = environment.step(action);
@@ -105,14 +110,14 @@ public class Main {
                 s = actionResult.getState();
 
                 if (actionResult.isDone()) {
-                    if (actionResult.getReward() < 0) {
+                    if (actionResult.getReward() < 0f) {
                         illegalMovesCount.incrementAndGet();
                     }
-                    if (actionResult.getReward() > 0) {
+                    if (actionResult.getReward() > 0f) {
 //                        System.out.println(
 //                                "******************************************************************\n" +
 //                                "*********************  B I N G O  ********************************\n" +
-//                                environment+
+//                                environment+"\n"+
 //                                "******************************************************************");
                         totalSuccessCount.incrementAndGet();
                         successCount.incrementAndGet();
