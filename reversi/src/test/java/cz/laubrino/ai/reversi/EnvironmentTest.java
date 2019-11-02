@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Set;
 
 import static cz.laubrino.ai.reversi.Policko.BLACK;
 import static cz.laubrino.ai.reversi.Policko.WHITE;
@@ -52,5 +53,27 @@ class EnvironmentTest {
 
         assertEquals("[........|........|....o...|.oooo...|..ooox..|x.xoo...|xxxo....|x.x.....]", stepResult.getState().toString());
 
+    }
+
+    @Test
+    void testStepTestOnly() {
+        Environment environment = new Environment();
+
+        String e1 = environment.toString();
+
+        StepResult stepResult = environment.doStep(new Action(2,4, WHITE), true);
+        assertFalse(stepResult.isDone());
+        assertEquals(StepResult.Reason.CONTINUE, stepResult.getReason());
+
+        assertEquals(e1,environment.toString());
+    }
+
+    @Test
+    void findAvailableActions() {
+        Environment environment = new Environment();
+        System.out.println(environment);
+
+        Set<Action> availableActions = environment.findAvailableActions();
+        System.out.println(availableActions.toString());
     }
 }

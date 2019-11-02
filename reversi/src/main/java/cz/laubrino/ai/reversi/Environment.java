@@ -1,5 +1,8 @@
 package cz.laubrino.ai.reversi;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import static cz.laubrino.ai.reversi.StepResult.Reason.*;
 
 /**
@@ -88,6 +91,51 @@ public class Environment {
 
     }
 
+    Set<Action> findAvailableActions() {
+        Set<Action> availableActions = new HashSet<>();
+
+        for (int y=0;y<BOARD_SIZE;y++) {
+            for (int x=0;x<BOARD_SIZE;x++) {
+                if (board[x + y * BOARD_SIZE] != Policko.EMPTY) {
+                    continue;
+                }
+
+                directions:
+                for (int xDirection : DIRECTIONS) {
+                    for (int yDirection : DIRECTIONS) {
+                        if (xDirection == 0 && yDirection == 0) {
+                            continue;
+                        }
+
+                        Policko firstColorFound = null;
+
+                        for (int index = (x + xDirection) + (y + yDirection) * BOARD_SIZE;
+                             index < BOARD_SIZE * BOARD_SIZE && index >= 0;
+                             index += xDirection + yDirection * BOARD_SIZE) {
+                            if (board[index] == Policko.EMPTY) {
+                                break;      // no action available in this direction
+                            }
+
+                            if (firstColorFound == null) {
+                                firstColorFound = board[index];
+                                continue;
+                            }
+
+                            if (firstColorFound == board[index]) {
+                                break;
+                            }
+
+                            availableActions.add(new Action(x, y, board[index]));
+                            break;      // TODO: consider break to "directions:"
+                        }
+                    }
+                }
+            }
+        }
+
+        return availableActions;
+    }
+
     /**
      *
      * @param action
@@ -117,7 +165,9 @@ public class Environment {
 
                     if (board[index] == action.getP()) {
                         if (foundOpposite) {
-                            flip(xDirection,yDirection,action);
+                            if (!testOnly) {
+                                flip(xDirection,yDirection,action);
+                            }
                             invalidMove = false;
                         }
                         break;
