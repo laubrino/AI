@@ -21,4 +21,8 @@ public enum Policko {
     public String toString() {
         return s;
     }
+
+    public char toChar() {
+        return s.charAt(0);
+    }
 }

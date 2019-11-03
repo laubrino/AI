@@ -76,4 +76,37 @@ class EnvironmentTest {
         Set<Action> availableActions = environment.findAvailableActions();
         System.out.println(availableActions.toString());
     }
+
+    /**
+     * Play shortest game
+     */
+    @Test
+    void testIsGameOver() {
+        Assumptions.assumeTrue(Environment.BOARD_SIZE == 8);
+
+        Environment environment = new Environment();
+
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(3,2,BLACK));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(2,2,WHITE));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(1,2,BLACK));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(3,1,WHITE));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(4,0,BLACK));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(3,5,WHITE));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(3,6,BLACK));
+        assertFalse(environment.isGameOver());
+        environment.step(new Action(4,2,WHITE));
+        assertFalse(environment.isGameOver());
+
+        environment.step(new Action(5,3,BLACK));
+        assertTrue(environment.isGameOver());
+        System.out.println(environment);
+        System.out.println(environment.getState().toString());
+    }
 }
