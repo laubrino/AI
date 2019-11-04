@@ -1,6 +1,5 @@
 package cz.laubrino.ai.reversi;
 
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -26,21 +25,18 @@ public class Games {
     public void playRandomGame(Environment environment, int steps) {
         Policko onTurn = BLACK;
 
-        while (steps > 0) {
+        while (steps > 0 && !environment.isGameOver()) {
             Policko finalOnTurn = onTurn;
 
-            Set<Action> availableActions = environment.findAvailableMoves().stream()
+            Set<Action> availableActions = environment.getAvailableActions().stream()
                     .filter(action -> action.getP() == finalOnTurn)
                     .collect(Collectors.toSet());
 
-            Optional<Action> optionalAction = Optional.empty();
-            if (!availableActions.isEmpty()) {
-                optionalAction = availableActions.stream()
-                        .skip(random.nextInt(availableActions.size()))
-                        .findFirst();
-            }
+            Action action = availableActions.stream()
+                    .skip(random.nextInt(availableActions.size()))
+                    .findFirst()
+                    .get();
 
-            Action action = optionalAction.orElse(Action.getPassAction(onTurn));
             environment.step(action);
 
             steps--;

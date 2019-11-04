@@ -1,10 +1,10 @@
 package cz.laubrino.ai.reversi;
 
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
-import static cz.laubrino.ai.reversi.StepResult.Reason.*;
+import static cz.laubrino.ai.reversi.Policko.BLACK;
+import static cz.laubrino.ai.reversi.Policko.WHITE;
+import static cz.laubrino.ai.reversi.StepResult.Status.*;
 
 /**
  * @author tomas.laubr on 1.11.2019.
@@ -12,12 +12,12 @@ import static cz.laubrino.ai.reversi.StepResult.Reason.*;
 public class Environment {
     public static int BOARD_SIZE = 8;
     private static String HEADING_LINE = " -0-1-2-3-4-5-6-7-8-";
-    private static String FOOTER_LINE = " --------------------";
     private static final int[] DIRECTIONS = new int[] {-1, 0, 1};
 
     private Policko[] board = new Policko[BOARD_SIZE*BOARD_SIZE];
     private Set<Policko> passed = EnumSet.noneOf(Policko.class);
     private boolean gameOver = false;
+    private Map<Policko, Observer> observers = new EnumMap<>(Policko.class);
 
     public Environment() {
         reset();
@@ -33,20 +33,37 @@ public class Environment {
         }
 
         if (BOARD_SIZE == 8) {
-            put(3,3,Policko.WHITE);
-            put(4,4,Policko.WHITE);
-            put(4,3,Policko.BLACK);
-            put(3,4,Policko.BLACK);
+            put(3,3, WHITE);
+            put(4,4, WHITE);
+            put(4,3, BLACK);
+            put(3,4, BLACK);
         }
 
         if (BOARD_SIZE == 6) {
-            put(2,2,Policko.WHITE);
-            put(3,3,Policko.WHITE);
-            put(3,2,Policko.BLACK);
-            put(2,3,Policko.BLACK);
+            put(2,2, WHITE);
+            put(3,3, WHITE);
+            put(3,2, BLACK);
+            put(2,3, BLACK);
         }
 
         passed.clear();
+        gameOver = false;
+    }
+
+    /**
+     * Set agents as observers of step results
+     * @param policko
+     * @param agent
+     */
+    public void addObserver(Policko policko, Observer observer) {
+        observers.put(policko, observer);
+    }
+
+    void notifyObservers(Policko policko, StepResult stepResult) {
+        Observer observer = observers.get(policko);
+        if (observer != null) {
+            observer.notify(stepResult);
+        }
     }
 
     public void put(int x, int y, Policko p) {
@@ -68,40 +85,94 @@ public class Environment {
             sb.append("|");
             sb.append("\n");
         }
-//        sb.append(FOOTER_LINE, 0, BOARD_SIZE*2+2);
 
         return sb.toString();
     }
 
-    public StepResult step(Action action) {
-        return doStep(action, false);
+    public void step(Action action) {
+        doStep(action, false);
+        return;
     }
 
+    Map<Policko, Integer> calculateScore() {
+        Map<Policko, Integer> score = new EnumMap<>(Policko.class);
+        score.put(WHITE, 0);
+        score.put(BLACK, 0);
+
+        for (Policko policko : board) {
+            if (policko != Policko.EMPTY) {
+                score.put(policko, score.get(policko) + 1);
+            }
+        }
+
+        if (gameOver) {     // add more points to a winner, if game is over
+            int white = score.get(WHITE);
+            int black = score.get(BLACK);
+
+            if (white + black != BOARD_SIZE*BOARD_SIZE) {
+                if (white == black) {
+                    score.put(WHITE, BOARD_SIZE*BOARD_SIZE/2);
+                    score.put(BLACK, BOARD_SIZE*BOARD_SIZE/2);
+                } else {
+                    Policko update = white < black ? BLACK : WHITE;
+
+                    int morePoint = BOARD_SIZE*BOARD_SIZE - white - black;
+                    score.put(update, score.get(update) + morePoint);
+                }
+            }
+        }
+
+        return score;
+    }
+
+    Optional<Policko> determineWinner(Map<Policko, Integer> score) {
+        if (score.get(WHITE).equals(score.get(BLACK))) {
+            return Optional.empty();
+        }
+
+        if (score.get(WHITE) > score.get(BLACK)) {
+            return Optional.of(WHITE);
+        }
+
+        return Optional.of(BLACK);
+    }
 
     /**
      *
      * @param action any action. If the action is invalid, return that in result
-     * @param testOnly
+     * @param testOnly if {@code true}, don't write to board
      * @return
      */
-    StepResult doStep(Action action, boolean testOnly) {
+    void doStep(Action action, boolean testOnly) {
         if (gameOver) {
-            return new StepResult(new State(board), -10f, true, ILLEGAL_MOVE);          // game is already over
+            throw new AssertionError("Game is already over.");
         }
 
         if (action.isPassAction()) {
             if (isThereMove(action.getP())) {
                 gameOver = true;
-                return new StepResult(new State(board), -10f, true, ILLEGAL_MOVE);      // it's not permitted to draw if there is a move available
+                notifyObservers(action.getP(), new StepResult(new State(board), -10f, true, ILLEGAL_ACTION));      // it's not permitted to draw if there is a move available
+                return;
             } else {
                 passed.add(action.getP());
             }
 
             if (passed.size() == 2) {       // both players passed
                 gameOver = true;
-                return new StepResult(new State(board), 0f, true, WIN);
+                Map<Policko, Integer> score = calculateScore();
+                Optional<Policko> optWinner = determineWinner(score);
+                if (optWinner.isPresent()) {
+                    notifyObservers(optWinner.get(), new StepResult(new State(board), 10f, true, WIN));
+                    notifyObservers(optWinner.get() == BLACK ? WHITE : BLACK, new StepResult(new State(board), -10f, true, LOSE));
+                } else {
+                    notifyObservers(WHITE, new StepResult(new State(board), 5f, true, DRAW));
+                    notifyObservers(BLACK, new StepResult(new State(board), 5f, true, DRAW));
+                }
+                return ;
             } else {
-                return new StepResult(new State(board), 0f, false, CONTINUE);
+                notifyObservers(BLACK, new StepResult(new State(board), 0f, false, CONTINUE));
+                notifyObservers(WHITE, new StepResult(new State(board), 0f, false, CONTINUE));
+                return;
             }
         }
 
@@ -110,14 +181,22 @@ public class Environment {
         }
 
         if (!checkAndReverse(action,testOnly)) {
-            return new StepResult(new State(board), -10f, true, ILLEGAL_MOVE);        // illegal move, place is not empty
+            notifyObservers(action.getP(), new StepResult(new State(board), -10f, true, ILLEGAL_ACTION));        // illegal move, place is not empty
+            return;
         }
 
         if (!testOnly) {
             board[action.getX() + action.getY()*BOARD_SIZE] = action.getP();
         }
 
-        return new StepResult(new State(board), 0f, false, CONTINUE);
+        passed.remove(action.getP());
+
+        if (checkGameOver()) {
+            gameOver = true;
+            // TODO: notify winner and looser
+        } else {
+            notifyObservers(action.getP(), new StepResult(new State(board), 0f, false, CONTINUE));
+        }
 
     }
 
@@ -125,15 +204,24 @@ public class Environment {
         return new State(board);
     }
 
-    boolean isGameOver() {
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+
+    /**
+     * should be private
+     * @return
+     */
+    boolean checkGameOver() {
         // check for both colors first
         boolean whiteFound = false;
         boolean blackFound = false;
 
         for (Policko policko : board) {
-            if (policko == Policko.WHITE) {
+            if (policko == WHITE) {
                 whiteFound = true;
-            } else if (policko == Policko.BLACK) {
+            } else if (policko == BLACK) {
                 blackFound = true;
             }
             if (whiteFound && blackFound) {
@@ -145,9 +233,9 @@ public class Environment {
             return true;
         }
 
-        Set<Action> availableActions = findAvailableMoves();
+        Set<Action> availableActions = getAvailableActions();
 
-        return availableActions.isEmpty();
+        return availableActions.stream().allMatch(Action::isPassAction);
     }
 
     /**
@@ -201,10 +289,10 @@ public class Environment {
     }
 
     /**
-     * find all available actions (white AND also black)
+     * find all available actions (white AND also black) including PASS action
      * @return
      */
-    Set<Action> findAvailableMoves() {
+    Set<Action> getAvailableActions() {
         Set<Action> availableActions = new HashSet<>();
 
         for (int y=0;y<BOARD_SIZE;y++) {
@@ -245,6 +333,13 @@ public class Environment {
             }
         }
 
+        if (availableActions.stream().noneMatch(action -> action.getP() == WHITE)) {
+            availableActions.add(Action.getPassAction(WHITE));
+        }
+        if (availableActions.stream().noneMatch(action -> action.getP() == BLACK)) {
+            availableActions.add(Action.getPassAction(BLACK));
+        }
+
         return availableActions;
     }
 
@@ -260,7 +355,7 @@ public class Environment {
         }
 
         boolean invalidMove = true;
-        Policko opposite = action.getP() == Policko.WHITE ? Policko.BLACK : Policko.WHITE;
+        Policko opposite = action.getP() == WHITE ? BLACK : WHITE;
 
         for (int xDirection : DIRECTIONS) {
             for (int yDirection : DIRECTIONS) {

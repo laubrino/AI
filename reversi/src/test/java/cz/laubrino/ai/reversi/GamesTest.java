@@ -14,4 +14,16 @@ class GamesTest {
         assertEquals("[....x...|...x....|.xxxx...|...xxx..|...xx...|...x....|...x....|........]",
                 environment.getState().toString());
     }
+
+    @Test
+    void testPlayRandomGame() {
+        Environment environment = new Environment();
+        Games games = new Games();
+
+        for (int i=0;i<100;i++) {
+            environment.reset();
+            games.playRandomGame(environment, i);
+            System.out.println(environment.getState().toString());
+        }
+    }
 }

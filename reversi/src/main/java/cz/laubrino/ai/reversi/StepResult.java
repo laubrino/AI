@@ -7,13 +7,13 @@ public class StepResult {
     private final State state;
     private final float reward;
     private final boolean done;
-    private final Reason reason;
+    private final Status status;
 
-    public StepResult(State state, float reward, boolean done, Reason reason) {
+    public StepResult(State state, float reward, boolean done, Status status) {
         this.state = state;
         this.reward = reward;
         this.done = done;
-        this.reason = reason;
+        this.status = status;
     }
 
     public State getState() {
@@ -28,8 +28,8 @@ public class StepResult {
         return done;
     }
 
-    public Reason getReason() {
-        return reason;
+    public Status getStatus() {
+        return status;
     }
 
     @Override
@@ -38,13 +38,15 @@ public class StepResult {
                 "s=" + state +
                 ", reward=" + reward +
                 ", done=" + done +
-                ", reason=" + reason +
+                ", reason=" + status +
                 '}';
     }
 
-    enum Reason {
-        ILLEGAL_MOVE,
+    enum Status {
+        ILLEGAL_ACTION,
         WIN,
-        CONTINUE
+        CONTINUE,
+        DRAW,
+        LOSE
     }
 }
