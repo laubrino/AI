@@ -23,7 +23,9 @@ class GamesTest {
         for (int i=0;i<100;i++) {
             environment.reset();
             games.playRandomGame(environment, i);
-            System.out.println(environment.getState().toString());
+            System.out.println(environment.toString());
+            System.out.println(environment.calculateScore().toString());
+            System.out.println("\n");
         }
     }
 }

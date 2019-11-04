@@ -38,6 +38,7 @@ public class Games {
                     .get();
 
             environment.step(action);
+            System.out.println(action + ": " + environment.getState().toString());
 
             steps--;
             onTurn = onTurn == BLACK ? WHITE : BLACK;

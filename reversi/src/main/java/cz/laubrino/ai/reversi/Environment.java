@@ -75,15 +75,14 @@ public class Environment {
         StringBuilder sb = new StringBuilder();
 
         sb.append(HEADING_LINE, 0, BOARD_SIZE*2+2);
-        sb.append("\n");
         for (int i=0;i<BOARD_SIZE; i++) {
+            sb.append("\n");
             sb.append(i);
             for (int j=0;j<BOARD_SIZE;j++) {
                 sb.append("|");
                 sb.append(board[i*BOARD_SIZE + j]);
             }
             sb.append("|");
-            sb.append("\n");
         }
 
         return sb.toString();
