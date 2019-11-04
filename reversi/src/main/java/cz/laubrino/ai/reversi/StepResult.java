@@ -43,7 +43,7 @@ public class StepResult {
     }
 
     enum Reason {
-        INVALID_MOVE,
+        ILLEGAL_MOVE,
         WIN,
         CONTINUE
     }

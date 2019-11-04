@@ -17,6 +17,7 @@ public class Environment {
 
     private Policko[] board = new Policko[BOARD_SIZE*BOARD_SIZE];
     private Set<Policko> passed = EnumSet.noneOf(Policko.class);
+    private boolean gameOver = false;
 
     public Environment() {
         reset();
@@ -84,15 +85,21 @@ public class Environment {
      * @return
      */
     StepResult doStep(Action action, boolean testOnly) {
+        if (gameOver) {
+            return new StepResult(new State(board), -10f, true, ILLEGAL_MOVE);          // game is already over
+        }
+
         if (action.isPassAction()) {
-            if (passed.contains(action.getP())) {
-                throw new RuntimeException();       // TODO: really? Can I passed several times? Chech possible moves first
+            if (isThereMove(action.getP())) {
+                gameOver = true;
+                return new StepResult(new State(board), -10f, true, ILLEGAL_MOVE);      // it's not permitted to draw if there is a move available
             } else {
                 passed.add(action.getP());
             }
 
-            if (passed.size() == 2) {
-                return new StepResult(new State(board), 0f, true, WIN);     // TODO: both players passed, deal with it
+            if (passed.size() == 2) {       // both players passed
+                gameOver = true;
+                return new StepResult(new State(board), 0f, true, WIN);
             } else {
                 return new StepResult(new State(board), 0f, false, CONTINUE);
             }
@@ -103,7 +110,7 @@ public class Environment {
         }
 
         if (!checkAndReverse(action,testOnly)) {
-            return new StepResult(new State(board), -10f, true, INVALID_MOVE);        // illegal move, place is not empty
+            return new StepResult(new State(board), -10f, true, ILLEGAL_MOVE);        // illegal move, place is not empty
         }
 
         if (!testOnly) {
@@ -138,16 +145,66 @@ public class Environment {
             return true;
         }
 
-        Set<Action> availableActions = findAvailableActions();
+        Set<Action> availableActions = findAvailableMoves();
 
-        return availableActions.size() == 0;
+        return availableActions.isEmpty();
+    }
+
+    /**
+     * Is there a move for a player?
+     * @param policko
+     * @return
+     */
+    boolean isThereMove(Policko policko) {
+        for (int y=0;y<BOARD_SIZE;y++) {
+            for (int x=0;x<BOARD_SIZE;x++) {
+                if (board[x + y * BOARD_SIZE] != Policko.EMPTY) {
+                    continue;
+                }
+
+                for (int xDirection : DIRECTIONS) {
+                    for (int yDirection : DIRECTIONS) {
+                        if (xDirection == 0 && yDirection == 0) {
+                            continue;
+                        }
+
+                        Policko firstColorFound = null;
+
+                        for (int index = (x + xDirection) + (y + yDirection) * BOARD_SIZE;
+                             index < BOARD_SIZE * BOARD_SIZE && index >= 0;
+                             index += xDirection + yDirection * BOARD_SIZE) {
+                            if (board[index] == Policko.EMPTY) {
+                                break;      // no action available in this direction
+                            }
+
+                            if (firstColorFound == null) {
+                                firstColorFound = board[index];
+                                if(firstColorFound == policko) {    // found other's player move, try different direction
+                                    break;
+                                } else {
+                                    continue;
+                                }
+                            }
+
+                            if (firstColorFound == board[index]) {
+                                break;
+                            }
+
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     /**
      * find all available actions (white AND also black)
      * @return
      */
-    Set<Action> findAvailableActions() {
+    Set<Action> findAvailableMoves() {
         Set<Action> availableActions = new HashSet<>();
 
         for (int y=0;y<BOARD_SIZE;y++) {
@@ -156,7 +213,6 @@ public class Environment {
                     continue;
                 }
 
-                directions:
                 for (int xDirection : DIRECTIONS) {
                     for (int yDirection : DIRECTIONS) {
                         if (xDirection == 0 && yDirection == 0) {
@@ -182,7 +238,7 @@ public class Environment {
                             }
 
                             availableActions.add(new Action(x, y, board[index]));
-                            break;      // TODO: consider break to "directions:"
+                            break;
                         }
                     }
                 }

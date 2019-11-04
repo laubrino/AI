@@ -30,7 +30,7 @@ class EnvironmentTest {
         for (int[] coordinate : new int[][]{{0,0}, {2,2}, {3,2}, {5,2}, {5,4}, {4,5}, {2,5}, {2,3}}) {
             stepResult = environment.step(new Action(coordinate[0], coordinate[1], WHITE));
             assertTrue(stepResult.isDone());
-            assertEquals(StepResult.Reason.INVALID_MOVE, stepResult.getReason());
+            assertEquals(StepResult.Reason.ILLEGAL_MOVE, stepResult.getReason());
             assertTrue(stepResult.getReward() < 0f);
         }
     }
@@ -73,7 +73,7 @@ class EnvironmentTest {
         Environment environment = new Environment();
         System.out.println(environment);
 
-        Set<Action> availableActions = environment.findAvailableActions();
+        Set<Action> availableActions = environment.findAvailableMoves();
         System.out.println(availableActions.toString());
     }
 
@@ -108,5 +108,18 @@ class EnvironmentTest {
         assertTrue(environment.isGameOver());
         System.out.println(environment);
         System.out.println(environment.getState().toString());
+    }
+
+    @Test
+    void testIsThereMove(){
+        Environment environment = new Environment();
+
+        assertTrue(environment.isThereMove(WHITE));
+        assertTrue(environment.isThereMove(BLACK));
+
+        new Games().playShortestGame(environment);
+
+        assertFalse(environment.isThereMove(WHITE));
+        assertFalse(environment.isThereMove(BLACK));
     }
 }

@@ -64,7 +64,8 @@ public class State {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder(PREFIX_CHAR);
+        StringBuilder sb = new StringBuilder();
+        sb.append(PREFIX_CHAR);
         for (int i=0;i<Environment.BOARD_SIZE * Environment.BOARD_SIZE;i++) {
             sb.append(state[i] == Policko.EMPTY ? EMPTY_CHAR : state[i].toString());
             if (i != 0 && i!= (Environment.BOARD_SIZE * Environment.BOARD_SIZE -1) && (i%Environment.BOARD_SIZE == Environment.BOARD_SIZE-1)) {

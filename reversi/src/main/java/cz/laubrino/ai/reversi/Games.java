@@ -28,11 +28,8 @@ public class Games {
 
         while (steps > 0) {
             Policko finalOnTurn = onTurn;
-//            Optional<Action> optionalAction = environment.findAvailableActions().stream()
-//                    .filter(action -> action.getP() == finalOnTurn)
-//                    .findAny();
 
-            Set<Action> availableActions = environment.findAvailableActions().stream()
+            Set<Action> availableActions = environment.findAvailableMoves().stream()
                     .filter(action -> action.getP() == finalOnTurn)
                     .collect(Collectors.toSet());
 
