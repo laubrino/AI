@@ -1,5 +1,6 @@
 package cz.laubrino.ai.reversi;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -9,13 +10,27 @@ import static org.junit.jupiter.api.Assertions.*;
 class GamesTest {
 
     @Test
-    void testPlayShortestGame() {
+    void testPlayShortestGame8x8() {
+        Assumptions.assumeTrue(Environment.BOARD_SIZE == 8);
+
         Environment environment = new Environment();
         Games games = new Games();
         games.playShortestGame(environment);
         assertEquals("[....x...|...x....|.xxxx...|...xxx..|...xx...|...x....|...x....|........]",
                 environment.getState().toString());
     }
+
+    @Test
+    void testPlayShortestGame6x6() {
+        Assumptions.assumeTrue(Environment.BOARD_SIZE == 6);
+
+        Environment environment = new Environment();
+        Games games = new Games();
+        games.playShortestGame(environment);
+        assertEquals("[......|...o..|..oo..|.ooo..|......|......]",
+                environment.getState().toString());
+    }
+
 
     @Test
     void testPlayRandomGame() {

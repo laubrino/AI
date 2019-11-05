@@ -122,20 +122,9 @@ class EnvironmentTest {
     }
 
     @Test
-    void testIsThereMove(){
-        Environment environment = new Environment();
-
-        assertTrue(environment.isThereMove(WHITE));
-        assertTrue(environment.isThereMove(BLACK));
-
-        new Games().playShortestGame(environment);
-
-        assertFalse(environment.isThereMove(WHITE));
-        assertFalse(environment.isThereMove(BLACK));
-    }
-
-    @Test
     void testGetAvailableActions() {
+        Assumptions.assumeTrue(Environment.BOARD_SIZE == 8);
+
         String[] actions = new String[]{"[5,4]x", "[3,5]o", "[2,5]x","[1,5]o","[2,3]x","[5,3]o","[5,2]x","[2,2]o","[1,6]x","[1,7]o",
                 "[3,2]x","[6,2]o","[0,5]x","[2,4]o","[6,3]x","[7,3]o","[1,4]x","[4,1]o","[0,7]x","[5,5]o","[1,3]x","[0,4]o",
                 "[7,4]x","[0,6]o","[7,5]x","[3,6]o","[2,7]x","[6,6]o","[4,5]x","[7,6]o","[6,4]x","[5,6]o","[4,2]x","[6,5]o","[0,2]x",
@@ -161,6 +150,15 @@ class EnvironmentTest {
         Set<Action> availableActions = environment.getAvailableActions();
         assertEquals(2, availableActions.size());
         assertTrue(availableActions.stream().allMatch(Action::isPassAction));
+   }
 
-    }
+   @Test
+    void testPassActionStep(){
+       Environment environment = new Environment();
+
+       assertFalse(environment.isGameOver());
+
+       environment.step(Action.getPassAction(BLACK));
+       assertTrue(environment.isGameOver());
+   }
 }

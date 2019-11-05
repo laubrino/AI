@@ -11,15 +11,23 @@ public class Games {
     private Random random = new Random();
 
     void playShortestGame(Environment environment) {
-        environment.step(Action.get(3,2,BLACK));
-        environment.step(Action.get(2,2,WHITE));
-        environment.step(Action.get(1,2,BLACK));
-        environment.step(Action.get(3,1,WHITE));
-        environment.step(Action.get(4,0,BLACK));
-        environment.step(Action.get(3,5,WHITE));
-        environment.step(Action.get(3,6,BLACK));
-        environment.step(Action.get(4,2,WHITE));
-        environment.step(Action.get(5,3,BLACK));
+        if (Environment.BOARD_SIZE == 8) {
+            environment.step(Action.get(3,2,BLACK));
+            environment.step(Action.get(2,2,WHITE));
+            environment.step(Action.get(1,2,BLACK));
+            environment.step(Action.get(3,1,WHITE));
+            environment.step(Action.get(4,0,BLACK));
+            environment.step(Action.get(3,5,WHITE));
+            environment.step(Action.get(3,6,BLACK));
+            environment.step(Action.get(4,2,WHITE));
+            environment.step(Action.get(5,3,BLACK));
+        } else if (Environment.BOARD_SIZE == 6) {
+            for (String action : new String[]{"[2,4]x","[1,3]o", "[0,2]x", "[2,1]o", "[2,0]x", "[3,1]o", "[4,2]x"}) {
+                environment.step(Action.get(action));
+            }
+        } else {
+            throw new RuntimeException("Unsupp. " + Environment.BOARD_SIZE + "x" + Environment.BOARD_SIZE);
+        }
     }
 
     public void playRandomGame(Environment environment, int steps) {

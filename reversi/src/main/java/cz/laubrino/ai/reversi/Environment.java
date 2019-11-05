@@ -9,7 +9,7 @@ import static cz.laubrino.ai.reversi.StepResult.Status.*;
  * @author tomas.laubr on 1.11.2019.
  */
 public class Environment {
-    public static int BOARD_SIZE = 8;
+    public static int BOARD_SIZE = 6;
     private static String HEADING_LINE = " -0-1-2-3-4-5-6-7-8-";
     private static final int[] DIRECTIONS = new int[] {-1, 0, 1};
     private static final Policko[] COLORS = new Policko[]{BLACK, WHITE};
@@ -148,7 +148,7 @@ public class Environment {
         }
 
         if (action.isPassAction()) {
-            if (isThereMove(action.getP())) {
+            if (getAvailableActions().stream().filter(action1 -> !action1.isPassAction()).anyMatch(action1 -> action1.getP() == action.getP())) {
                 gameOver = true;
                 notifyObservers(action.getP(), new StepResult(new State(board), -10f, true, ILLEGAL_ACTION));      // it's not permitted to draw if there is a move available
                 return;
@@ -229,56 +229,6 @@ public class Environment {
         Set<Action> availableActions = getAvailableActions();
 
         return availableActions.stream().allMatch(Action::isPassAction);
-    }
-
-    /**
-     * Is there a move for a player?
-     * @param policko
-     * @return
-     */
-    boolean isThereMove(Policko policko) {
-        for (int y=0;y<BOARD_SIZE;y++) {
-            for (int x=0;x<BOARD_SIZE;x++) {
-                if (board[x + y * BOARD_SIZE] != Policko.EMPTY) {
-                    continue;
-                }
-
-                for (int xDirection : DIRECTIONS) {
-                    for (int yDirection : DIRECTIONS) {
-                        if (xDirection == 0 && yDirection == 0) {
-                            continue;
-                        }
-
-                        Policko firstColorFound = null;
-
-                        for (int index = (x + xDirection) + (y + yDirection) * BOARD_SIZE;
-                             index < BOARD_SIZE * BOARD_SIZE && index >= 0;
-                             index += xDirection + yDirection * BOARD_SIZE) {
-                            if (board[index] == Policko.EMPTY) {
-                                break;      // no action available in this direction
-                            }
-
-                            if (firstColorFound == null) {
-                                firstColorFound = board[index];
-                                if(firstColorFound == policko) {    // found other's player move, try different direction
-                                    break;
-                                } else {
-                                    continue;
-                                }
-                            }
-
-                            if (firstColorFound == board[index]) {
-                                break;
-                            }
-
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 
     /**
