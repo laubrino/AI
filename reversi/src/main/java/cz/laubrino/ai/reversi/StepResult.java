@@ -1,5 +1,7 @@
 package cz.laubrino.ai.reversi;
 
+import java.util.Objects;
+
 /**
  * @author tomas.laubr on 1.11.2019.
  */
@@ -48,5 +50,21 @@ public class StepResult {
         CONTINUE,
         DRAW,
         LOSE
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StepResult that = (StepResult) o;
+        return Float.compare(that.getReward(), getReward()) == 0 &&
+                isDone() == that.isDone() &&
+                Objects.equals(getState(), that.getState()) &&
+                getStatus() == that.getStatus();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getState(), getReward(), isDone(), getStatus());
     }
 }
