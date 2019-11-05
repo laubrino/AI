@@ -43,5 +43,6 @@ public class Games {
             steps--;
             onTurn = onTurn == BLACK ? WHITE : BLACK;
         }
+        System.out.println("Game over? " + environment.isGameOver());
     }
 }

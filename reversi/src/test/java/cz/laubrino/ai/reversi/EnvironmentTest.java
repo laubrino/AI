@@ -133,4 +133,34 @@ class EnvironmentTest {
         assertFalse(environment.isThereMove(WHITE));
         assertFalse(environment.isThereMove(BLACK));
     }
+
+    @Test
+    void testGetAvailableActions() {
+        String[] actions = new String[]{"[5,4]x", "[3,5]o", "[2,5]x","[1,5]o","[2,3]x","[5,3]o","[5,2]x","[2,2]o","[1,6]x","[1,7]o",
+                "[3,2]x","[6,2]o","[0,5]x","[2,4]o","[6,3]x","[7,3]o","[1,4]x","[4,1]o","[0,7]x","[5,5]o","[1,3]x","[0,4]o",
+                "[7,4]x","[0,6]o","[7,5]x","[3,6]o","[2,7]x","[6,6]o","[4,5]x","[7,6]o","[6,4]x","[5,6]o","[4,2]x","[6,5]o","[0,2]x",
+                "[1,2]o","[0,3]x","[7,1]o","[3,1]x","[2,1]o","[1,1]x","[0,1]o","[2,0]x","[2,6]o","[5,1]x","[5,0]o","[6,0]x",
+                "[3,7]o","[7,0]x","[3,0]o","[4,0]x","[1,0]o","[6,1]x","[7,2]o","[0,0]x"};
+
+        Environment environment = new Environment();
+        for (String action : actions) {
+            environment.step(Action.get(action));
+        }
+
+        Set<Action> availableActions = environment.getAvailableActions();
+        assertEquals(6, availableActions.size());
+        assertTrue(availableActions.stream().filter(Action::isPassAction).anyMatch(action -> action.getP() == WHITE));
+    }
+
+    @Test
+    void testGetAvailableActions2() {
+        Environment environment = new Environment();
+        Games games = new Games();
+        games.playShortestGame(environment);
+
+        Set<Action> availableActions = environment.getAvailableActions();
+        assertEquals(2, availableActions.size());
+        assertTrue(availableActions.stream().allMatch(Action::isPassAction));
+
+    }
 }

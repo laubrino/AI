@@ -2,8 +2,7 @@ package cz.laubrino.ai.reversi;
 
 import java.util.*;
 
-import static cz.laubrino.ai.reversi.Policko.BLACK;
-import static cz.laubrino.ai.reversi.Policko.WHITE;
+import static cz.laubrino.ai.reversi.Policko.*;
 import static cz.laubrino.ai.reversi.StepResult.Status.*;
 
 /**
@@ -13,6 +12,7 @@ public class Environment {
     public static int BOARD_SIZE = 8;
     private static String HEADING_LINE = " -0-1-2-3-4-5-6-7-8-";
     private static final int[] DIRECTIONS = new int[] {-1, 0, 1};
+    private static final Policko[] COLORS = new Policko[]{BLACK, WHITE};
 
     private Policko[] board = new Policko[BOARD_SIZE*BOARD_SIZE];
     private Set<Policko> passed = EnumSet.noneOf(Policko.class);
@@ -190,13 +190,7 @@ public class Environment {
 
         passed.remove(action.getP());
 
-        if (checkGameOver()) {
-            gameOver = true;
-            // TODO: notify winner and looser
-        } else {
-            notifyObservers(action.getP(), new StepResult(new State(board), 0f, false, CONTINUE));
-        }
-
+        notifyObservers(action.getP(), new StepResult(new State(board), 0f, false, CONTINUE));
     }
 
     public State getState() {
@@ -293,6 +287,7 @@ public class Environment {
      */
     Set<Action> getAvailableActions() {
         Set<Action> availableActions = new HashSet<>();
+        Map<Policko, Boolean> alreadyFound = new EnumMap<>(Policko.class);
 
         for (int y=0;y<BOARD_SIZE;y++) {
             for (int x=0;x<BOARD_SIZE;x++) {
@@ -300,32 +295,28 @@ public class Environment {
                     continue;
                 }
 
+                alreadyFound.put(WHITE, false);
+                alreadyFound.put(BLACK, false);
+
+                directions:
                 for (int xDirection : DIRECTIONS) {
                     for (int yDirection : DIRECTIONS) {
                         if (xDirection == 0 && yDirection == 0) {
                             continue;
                         }
 
-                        Policko firstColorFound = null;
+                        if (alreadyFound.get(WHITE) && alreadyFound.get(BLACK)) {
+                            break directions;
+                        }
 
-                        for (int index = (x + xDirection) + (y + yDirection) * BOARD_SIZE;
-                             index < BOARD_SIZE * BOARD_SIZE && index >= 0;
-                             index += xDirection + yDirection * BOARD_SIZE) {
-                            if (board[index] == Policko.EMPTY) {
-                                break;      // no action available in this direction
+                        for (Policko color : COLORS) {
+                            if (!alreadyFound.get(color)) {
+                                boolean reversiInDirection = isReversiInDirection(x, y, xDirection, yDirection, color);
+                                alreadyFound.put(color, reversiInDirection);
+                                if (reversiInDirection){
+                                    availableActions.add(Action.get(x, y, color));
+                                }
                             }
-
-                            if (firstColorFound == null) {
-                                firstColorFound = board[index];
-                                continue;
-                            }
-
-                            if (firstColorFound == board[index]) {
-                                break;
-                            }
-
-                            availableActions.add(Action.get(x, y, board[index]));
-                            break;
                         }
                     }
                 }
@@ -340,6 +331,27 @@ public class Environment {
         }
 
         return availableActions;
+    }
+
+    private boolean isReversiInDirection(int x, int y, int xDirection, int yDirection, Policko color) {
+        boolean foundOpposite = false;
+        for (int index = (x + xDirection) + (y + yDirection) * BOARD_SIZE;
+             index < BOARD_SIZE * BOARD_SIZE && index >= 0;
+             index += xDirection + yDirection * BOARD_SIZE) {
+
+            if (board[index] == EMPTY) {
+                return false;
+            }
+
+            if (board[index] == (color == WHITE ? BLACK : WHITE)) {
+                foundOpposite = true;
+                continue;
+            }
+
+            return board[index] == color && foundOpposite;
+        }
+
+        return  false;
     }
 
     /**

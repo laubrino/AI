@@ -43,7 +43,7 @@ public class Action {
     }
 
     /**
-     * Namely for testing to simulate some games
+     * Namely for testing to simulate some games. Don't need to pre-compute values
      * @param action expected format is '[x,y]C' e.g. "[4,5]x" or "[-1,-1]o"
      * @return
      */
