@@ -11,15 +11,15 @@ public class Games {
     private Random random = new Random();
 
     void playShortestGame(Environment environment) {
-        environment.step(new Action(3,2,BLACK));
-        environment.step(new Action(2,2,WHITE));
-        environment.step(new Action(1,2,BLACK));
-        environment.step(new Action(3,1,WHITE));
-        environment.step(new Action(4,0,BLACK));
-        environment.step(new Action(3,5,WHITE));
-        environment.step(new Action(3,6,BLACK));
-        environment.step(new Action(4,2,WHITE));
-        environment.step(new Action(5,3,BLACK));
+        environment.step(Action.get(3,2,BLACK));
+        environment.step(Action.get(2,2,WHITE));
+        environment.step(Action.get(1,2,BLACK));
+        environment.step(Action.get(3,1,WHITE));
+        environment.step(Action.get(4,0,BLACK));
+        environment.step(Action.get(3,5,WHITE));
+        environment.step(Action.get(3,6,BLACK));
+        environment.step(Action.get(4,2,WHITE));
+        environment.step(Action.get(5,3,BLACK));
     }
 
     public void playRandomGame(Environment environment, int steps) {

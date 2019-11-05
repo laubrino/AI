@@ -324,7 +324,7 @@ public class Environment {
                                 break;
                             }
 
-                            availableActions.add(new Action(x, y, board[index]));
+                            availableActions.add(Action.get(x, y, board[index]));
                             break;
                         }
                     }

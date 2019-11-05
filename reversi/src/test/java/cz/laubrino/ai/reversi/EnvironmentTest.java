@@ -34,7 +34,7 @@ class EnvironmentTest {
         environment.addObserver(WHITE, observer);
 
         for (int[] coordinate : new int[][]{{0,0}, {2,2}, {3,2}, {5,2}, {5,4}, {4,5}, {2,5}, {2,3}}) {
-            environment.step(new Action(coordinate[0], coordinate[1], WHITE));
+            environment.step(Action.get(coordinate[0], coordinate[1], WHITE));
         }
     }
 
@@ -51,10 +51,10 @@ class EnvironmentTest {
         };
         environment.addObserver(WHITE, observer);
 
-        for (Action action : Arrays.asList(new Action(2,4, WHITE), new Action(2,5, BLACK), new Action(4,2,WHITE),
-                new Action(2,3,BLACK), new Action(1,6,WHITE), new Action(2,6,BLACK), new Action(3,6,WHITE),
-                new Action(0,7,BLACK), new Action(0,6,WHITE), new Action(2,7,BLACK), new Action(1,3,WHITE),
-                new Action(5,4,BLACK), new Action(4,5,WHITE), new Action(0,5,BLACK), new Action(3,5,WHITE))) {
+        for (Action action : Arrays.asList(Action.get(2,4, WHITE), Action.get(2,5, BLACK), Action.get(4,2,WHITE),
+                Action.get(2,3,BLACK), Action.get(1,6,WHITE), Action.get(2,6,BLACK), Action.get(3,6,WHITE),
+                Action.get(0,7,BLACK), Action.get(0,6,WHITE), Action.get(2,7,BLACK), Action.get(1,3,WHITE),
+                Action.get(5,4,BLACK), Action.get(4,5,WHITE), Action.get(0,5,BLACK), Action.get(3,5,WHITE))) {
             environment.step(action);
         }
 
@@ -74,7 +74,7 @@ class EnvironmentTest {
         };
         environment.addObserver(WHITE, observer);
 
-        environment.doStep(new Action(2,4, WHITE), true);
+        environment.doStep(Action.get(2,4, WHITE), true);
 
         assertEquals(e1,environment.toString());
     }
@@ -98,24 +98,24 @@ class EnvironmentTest {
         Environment environment = new Environment();
 
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(3,2,BLACK));
+        environment.step(Action.get(3,2,BLACK));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(2,2,WHITE));
+        environment.step(Action.get(2,2,WHITE));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(1,2,BLACK));
+        environment.step(Action.get(1,2,BLACK));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(3,1,WHITE));
+        environment.step(Action.get(3,1,WHITE));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(4,0,BLACK));
+        environment.step(Action.get(4,0,BLACK));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(3,5,WHITE));
+        environment.step(Action.get(3,5,WHITE));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(3,6,BLACK));
+        environment.step(Action.get(3,6,BLACK));
         assertFalse(environment.checkGameOver());
-        environment.step(new Action(4,2,WHITE));
+        environment.step(Action.get(4,2,WHITE));
         assertFalse(environment.checkGameOver());
 
-        environment.step(new Action(5,3,BLACK));
+        environment.step(Action.get(5,3,BLACK));
         assertTrue(environment.checkGameOver());
         System.out.println(environment);
         System.out.println(environment.getState().toString());

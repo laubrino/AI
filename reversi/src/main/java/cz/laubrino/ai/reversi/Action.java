@@ -1,7 +1,6 @@
 package cz.laubrino.ai.reversi;
 
 import java.util.EnumMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,11 +11,19 @@ import java.util.regex.Pattern;
 public class Action {
     private static final EnumMap<Policko, Action> PASS_ACTIONS = new EnumMap<>(Policko.class);
     private static final Pattern PATTERN = Pattern.compile("\\[(-?\\d),(-?\\d)\\](.)");
-
+    private static final Action[][][] ACTIONS = new Action[Environment.BOARD_SIZE][Environment.BOARD_SIZE][2];
 
     static {
         PASS_ACTIONS.put(Policko.WHITE, new Action(-1,-1,Policko.WHITE));
         PASS_ACTIONS.put(Policko.BLACK, new Action(-1,-1,Policko.BLACK));
+
+        for (int x=0; x<Environment.BOARD_SIZE; x++) {
+            for (int y=0; y<Environment.BOARD_SIZE; y++) {
+                for (int p=0;p<2;p++) {
+                    ACTIONS[x][y][p] = new Action(x,y, p == 0 ? Policko.WHITE : Policko.BLACK);
+                }
+            }
+        }
     }
 
     private final int x;
@@ -27,13 +34,38 @@ public class Action {
         return PASS_ACTIONS.get(policko);
     }
 
+    public static Action get(int x, int y, Policko p) {
+        if (x == -1 && y == -1) {
+            return getPassAction(p);
+        } else {
+            return ACTIONS[x][y][p == Policko.WHITE ? 0 : 1];
+        }
+    }
+
+    /**
+     * Namely for testing to simulate some games
+     * @param action expected format is '[x,y]C' e.g. "[4,5]x" or "[-1,-1]o"
+     * @return
+     */
+    public static Action get(String action) {
+        Matcher matcher = PATTERN.matcher(action);
+
+        if (!matcher.matches()) {
+            throw new RuntimeException(action);
+        }
+
+        return get(Integer.parseInt(matcher.group(1)),
+                Integer.parseInt(matcher.group(2)),
+                Policko.parse(matcher.group(3)));
+    }
+
     /**
      *  a black/white on board position [x,y]
      * @param x
      * @param y
      * @param p
      */
-    public Action(int x, int y, Policko p) {
+    private Action(int x, int y, Policko p) {
         if (p == Policko.EMPTY) {
             throw new AssertionError(p);
         }
@@ -41,22 +73,6 @@ public class Action {
         this.y = y;
         this.p = p;
     }
-
-    /**
-     * @param action expected format is '[x,y]C' e.g. "[4,5]x" or "[-1,-1]o"
-     */
-    public Action(String action) {
-        Matcher matcher = PATTERN.matcher(action);
-
-        if (!matcher.matches()) {
-            throw new RuntimeException(action);
-        }
-
-        this.x = Integer.parseInt(matcher.group(1));
-        this.y = Integer.parseInt(matcher.group(2));
-        this.p = Policko.parse(matcher.group(3));
-    }
-
 
     public boolean isPassAction() {
         return x == -1 || y == -1;
