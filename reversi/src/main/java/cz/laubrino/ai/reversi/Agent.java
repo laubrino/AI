@@ -10,16 +10,18 @@ public class Agent implements Observer {
     private static final float ALPHA = 0.2f;    // learn factor
     private static final float GAMMA = 0.9f;    // high for qTable, low for NN
 
-    Random randoms = new Random();
     private final QTable<State, Action> qTable;
+    private final String name;
+    Random randoms = new Random();
     private float EPSILON = 0.1f;               // random factor
 
     private StepResult latestStepResult;
     private StepResult previousStepResult;
     private Action latestAction;
 
-    public Agent(QTable<State, Action> qTable) {
+    public Agent(String name, QTable<State, Action> qTable) {
         this.qTable = qTable;
+        this.name = name;
     }
 
     public void notify(StepResult newStepResult) {

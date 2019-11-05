@@ -36,6 +36,7 @@ class GamesTest {
     void testPlayRandomGame() {
         Environment environment = new Environment();
         Games games = new Games();
+        System.out.println(environment.getState());
 
         for (int i=0;i<100;i++) {
             environment.reset();

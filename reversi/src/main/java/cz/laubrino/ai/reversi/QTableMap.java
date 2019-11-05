@@ -38,7 +38,11 @@ public class QTableMap implements QTable<State, Action> {
                 .filter(actionFloatEntry -> actionFloatEntry.getValue() >= maxValue)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
-        return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst();
+        if (maxActions.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst();
+        }
     }
 
     @Override

@@ -12,6 +12,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class AgentTest {
     @Test
     void testConstructor(){
-        Agent agent = new Agent(new QTableMap());
+        Agent agent = new Agent("agent", new QTableMap());
     }
 }
