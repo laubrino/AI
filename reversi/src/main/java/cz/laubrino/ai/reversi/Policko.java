@@ -7,8 +7,6 @@ public enum Policko {
     EMPTY("."),
     WHITE("o"),
     BLACK("x")
-//    WHITE("○"),
-//    BLACK("●")
     ;
 
     private String s;
@@ -25,4 +23,25 @@ public enum Policko {
     public char toChar() {
         return s.charAt(0);
     }
+
+    public static Policko parse(String s) {
+        for (Policko p : Policko.values()) {
+            if (p.s.equals(s)) {
+                return p;
+            }
+        }
+
+        throw new RuntimeException("No color '" + s + "'");
+    }
+
+    public static Policko parse(char ch) {
+        for (Policko p : Policko.values()) {
+            if (p.toChar() == ch) {
+                return p;
+            }
+        }
+
+        throw new RuntimeException("No color '" + ch + "'");
+    }
+
 }
