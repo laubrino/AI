@@ -33,43 +33,71 @@ public class Main {
         AtomicLong lastTimePrint = new AtomicLong(System.currentTimeMillis());
         AtomicInteger totalSuccessCount = new AtomicInteger(0);
 
-        ExecutorService executorService;// = Executors.newFixedThreadPool(1);
-        executorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
+        ExecutorService learningExecutorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
                 new ExecutorBlockingQueue<>(100));
+
+        ExecutorService testingExecutorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
+                new ExecutorBlockingQueue<>(1000));
 
         for (int n = 0; n < EPISODES; n++) {
             Worker worker = new Worker(lastTimePrint, agent, totalSuccessCount, n, numberOfMovesInEpisodes, samplingCounters);
-            executorService.submit(worker);
+            learningExecutorService.submit(worker);
 
             if (n % (EPISODES/1000) == 0) {
-                sucessRate.add(solvePuzzle(agent));
+                sucessRate.add(solvePuzzle(agent, testingExecutorService));
             }
 
         }
 
-        executorService.shutdown();
-        executorService.awaitTermination(1, TimeUnit.DAYS);
+        learningExecutorService.shutdown();
+        learningExecutorService.awaitTermination(1, TimeUnit.DAYS);
 
         System.out.println("**************** Found " + totalSuccessCount.get() + " solutions out of " + EPISODES);
         System.out.println(samplingCounters);
         System.out.println("Number of moves necessary to solve puzzle: " + Arrays.deepToString(numberOfMovesInEpisodes.toArray()));
         System.out.println("Sucess rate [%]: " + Arrays.deepToString(sucessRate.toArray()));
 
-        saveToDisk(qTable);
-
-        agent.setEpsilon(0);
-        solvePuzzle(agent);
+        // saveToDisk(qTable);
     }
 
     /**
      * Let an already trained agent to solve the puzzle
      * @return percent of solved puzzles
      */
-    static int solvePuzzle(Agent agent) {
-        int puzzleSolvedCounter = 0;
+    static int solvePuzzle(Agent agent, ExecutorService testingExecutorService) {
+        int puzzleSolvedCounter;
         int epizodes = 1_000;
+        List<Future<Boolean>> futures = new ArrayList<>(epizodes);
 
         for (int n=0;n<epizodes;n++) {
+            PuzzleSolverWorker puzzleSolverWorker = new PuzzleSolverWorker(agent);
+            futures.add(testingExecutorService.submit(puzzleSolverWorker));
+        }
+
+        puzzleSolvedCounter = (int)futures.stream().filter(booleanFuture -> {
+            try {
+                return booleanFuture.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }).count();
+
+
+        int percentage = (int)((float)puzzleSolvedCounter/(float)epizodes * 100);
+        return percentage;
+    }
+
+
+    private static class PuzzleSolverWorker implements Callable<Boolean> {
+        private final Agent agent;
+
+        private PuzzleSolverWorker(Agent agent) {
+            this.agent = agent;
+        }
+
+        @Override
+        public Boolean call() {
             Environment environment = new Environment();
             environment.shuffle(RANDOMS.nextInt(800) + 200);        // shuffle 200-1000
 
@@ -79,14 +107,10 @@ public class Main {
                 environment.step(action);
             }
 
-            if (environment.isFinalStateAchieved()) {
-                puzzleSolvedCounter++;
-            }
+            return environment.isFinalStateAchieved();
         }
-
-        int percentage = (int)((float)puzzleSolvedCounter/(float)epizodes * 100);
-        return percentage;
     }
+
 
     static void saveToDisk(QTable qTable) throws IOException {
         System.out.print("Saving qTable to " + PATH + "....");
