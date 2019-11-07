@@ -1,5 +1,6 @@
 package cz.laubrino.ai.patnact;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 
 import java.util.EnumSet;
@@ -38,6 +39,8 @@ class EnvironmentTest {
 
     @Test
     void testMoves1() {
+        Assumptions.assumeTrue(Environment.BOARD_SIZE >= 3);
+
         Environment environment = new Environment();
         System.out.println(environment);
         System.out.println(environment.getState());

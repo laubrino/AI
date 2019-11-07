@@ -24,9 +24,26 @@ public class SamplingCounters {
         samplingCounters.forEach((name, samplingCounter) -> samplingCounter.incrementAndGet());
     }
 
+    public int incrementAndGet(String name) {
+        return samplingCounters.get(name).incrementAndGet();
+    }
+
     public void print(PrintStream printStream) {
-        samplingCounters.entrySet().stream().sorted((o1, o2) -> Objects.compare(o1.getKey(), o2.getKey(), String::compareTo))
+        samplingCounters.entrySet().stream().sorted((es1, es2) -> Objects.compare(es1.getKey(), es2.getKey(), String::compareTo))
                 .forEach(es -> printStream.println(es.getKey() + ": " + es.getValue().getCounts()));
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        samplingCounters.entrySet().stream().sorted((es1, es2) -> Objects.compare(es1.getKey(), es2.getKey(), String::compareTo))
+                .forEach(es -> {
+                    sb.append(es.getKey());
+                    sb.append(": ");
+                    sb.append(es.getValue().getCounts());
+                    sb.append("\n");
+                });
+
+        return sb.toString();
     }
 
     String toString(String name) {

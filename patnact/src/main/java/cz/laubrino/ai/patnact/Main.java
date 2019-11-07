@@ -22,22 +22,23 @@ public class Main {
     public static void main(String[] args) throws IOException, InterruptedException {
         QTable qTable = new QTable();
         Agent agent = new Agent(qTable);
-        List<Integer> illegalMoves = Collections.synchronizedList(new ArrayList<>());
-        List<Integer> successed = Collections.synchronizedList(new ArrayList<>());
+
+        SamplingCounters samplingCounters = new SamplingCounters("Illegal moves", "Found solutions");
         List<Integer> numberOfMovesInEpisodes = Collections.synchronizedList(new ArrayList<>());
+
+
+
         List<Integer> sucessRate = new ArrayList<>();
 
         AtomicLong lastTimePrint = new AtomicLong(System.currentTimeMillis());
         AtomicInteger totalSuccessCount = new AtomicInteger(0);
-        AtomicInteger illegalMovesCount = new AtomicInteger(0);
-        AtomicInteger successCount = new AtomicInteger(0);
 
         ExecutorService executorService;// = Executors.newFixedThreadPool(1);
         executorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
                 new ExecutorBlockingQueue<>(100));
 
         for (int n = 0; n < EPISODES; n++) {
-            Worker worker = new Worker(lastTimePrint, agent, illegalMoves, illegalMovesCount, totalSuccessCount, n, successed, successCount, numberOfMovesInEpisodes);
+            Worker worker = new Worker(lastTimePrint, agent, totalSuccessCount, n, numberOfMovesInEpisodes, samplingCounters);
             executorService.submit(worker);
 
             if (n % (EPISODES/1000) == 0) {
@@ -50,9 +51,7 @@ public class Main {
         executorService.awaitTermination(1, TimeUnit.DAYS);
 
         System.out.println("**************** Found " + totalSuccessCount.get() + " solutions out of " + EPISODES);
-
-        System.out.println("Illegal moves: " + Arrays.deepToString(illegalMoves.toArray()));
-        System.out.println("Found solutions: " + Arrays.deepToString(successed.toArray()));
+        System.out.println(samplingCounters);
         System.out.println("Number of moves necessary to solve puzzle: " + Arrays.deepToString(numberOfMovesInEpisodes.toArray()));
         System.out.println("Sucess rate [%]: " + Arrays.deepToString(sucessRate.toArray()));
 
@@ -103,24 +102,18 @@ public class Main {
     private static class Worker implements Runnable {
         private final AtomicLong lastTimePrint;
         private final Agent agent;
-        private final List<Integer> illegalMoves;
-        private final List<Integer> successes;
         private final List<Integer> numberOfMovesInEpisodes;
-        private final AtomicInteger illegalMovesCount;
         private final AtomicInteger totalSuccessCount;
-        private final AtomicInteger successCount;
+        private final SamplingCounters samplingCounters;
 
-        public Worker(AtomicLong lastTimePrint, Agent agent, List<Integer> illegalMoves, AtomicInteger illegalMovesCount, AtomicInteger totalSuccessCount,
-                      int n, List<Integer> successes, AtomicInteger successCount, List<Integer> numberOfMovesInEpisodes) {
+        public Worker(AtomicLong lastTimePrint, Agent agent, AtomicInteger totalSuccessCount,
+                      int n, List<Integer> numberOfMovesInEpisodes, SamplingCounters samplingCounters) {
             this.lastTimePrint = lastTimePrint;
             this.agent = agent;
-            this.illegalMoves = illegalMoves;
-            this.illegalMovesCount = illegalMovesCount;
             this.totalSuccessCount = totalSuccessCount;
             this.n = n;
-            this.successes = successes;
-            this.successCount = successCount;
             this.numberOfMovesInEpisodes = numberOfMovesInEpisodes;
+            this.samplingCounters = samplingCounters;
         }
 
         private final int n;
@@ -153,7 +146,7 @@ public class Main {
 
                 if (actionResult.isDone()) {
                     if (actionResult.getReward() < 0f) {
-                        illegalMovesCount.incrementAndGet();
+                        samplingCounters.incrementAndGet("Illegal moves");
                     }
                     if (actionResult.getReward() > 0f) {
 //                        System.out.println(
@@ -162,15 +155,14 @@ public class Main {
 //                                environment+"\n"+
 //                                "******************************************************************");
                         totalSuccessCount.incrementAndGet();
-                        successCount.incrementAndGet();
+                        samplingCounters.incrementAndGet("Found solutions");
                     }
                     break;
                 }
             }
 
             if (n % (EPISODES/1000) == 0) {
-                illegalMoves.add(illegalMovesCount.getAndSet(0));
-                successes.add(successCount.getAndSet(0));
+                samplingCounters.sample();
                 numberOfMovesInEpisodes.add(i);
             }
 
