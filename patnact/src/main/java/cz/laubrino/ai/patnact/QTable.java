@@ -60,7 +60,11 @@ public class QTable {
             }
         }
 
-        return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst().get();
+        if(!maxActions.isEmpty()) {
+            return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst().get();
+        } else {
+            return Action.values()[randoms.nextInt(Action.values().length)];
+        }
     }
 
     void output(DataOutputStream os) throws IOException {
