@@ -8,10 +8,12 @@ import java.util.Random;
 public class Agent {
     private static final float ALPHA = 0.5f;
     private static final float GAMMA = 0.9f;
-    private static final double EPSILON = 0.1f;
+    private static final float EPSILON_DECAY = 0.99995f;
 
     private final QTable qTable;
-    Random randoms = new Random();
+    private Random randoms = new Random();
+    volatile private double epsilon = 0.5f;
+    volatile private long learnsCounter = 0;
 
     public Agent(QTable qTable) {
         this.qTable = qTable;
@@ -22,14 +24,32 @@ public class Agent {
             float oldQ = qTable.get(s, a);
             float newQ = oldQ + ALPHA*(r + GAMMA * qTable.max(newS) - oldQ);
             qTable.set(s, a, newQ);
+
+            learnsCounter++;
+            if (learnsCounter > 1000) {
+                epsilon = epsilon*EPSILON_DECAY;
+                learnsCounter = 0;
+            }
         }
     }
 
-    Action chooseAction(State state) {
-        if (randoms.nextDouble() < EPSILON) {       // take random action
+    public Action chooseAction(State state, double epsilon) {
+        if (randoms.nextDouble() < epsilon) {       // take random action
             return Action.values()[randoms.nextInt(Action.values().length)];
         } else {
             return qTable.maxAction(state);
         }
+    }
+
+    public Action chooseAction(State state) {
+        return chooseAction(state, this.epsilon);
+    }
+
+    public double getEpsilon() {
+        return epsilon;
+    }
+
+    public void setEpsilon(double epsilon) {
+        this.epsilon = epsilon;
     }
 }

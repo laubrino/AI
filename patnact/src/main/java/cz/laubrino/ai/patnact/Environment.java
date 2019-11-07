@@ -9,7 +9,8 @@ import java.util.Random;
  * @author tomas.laubr on 24.10.2019.
  */
 public class Environment {
-    byte[][] board = new byte[4][4];
+    public static final int BOARD_SIZE = 3;
+    byte[] board = new byte[BOARD_SIZE*BOARD_SIZE];
     private Random randoms = new Random();
 
     public Environment() {
@@ -20,10 +21,11 @@ public class Environment {
      * Reset but do not shuffle
      */
     void reset() {
-        board[3][3] = 0;
-        for (byte i=0;i<15;i++) {
-            board[i/4][i&3] = (byte)(i+1);
+        for (int i=0;i<BOARD_SIZE*BOARD_SIZE-1;i++) {
+            board[i] = (byte)(i+1);
         }
+
+        board[BOARD_SIZE*BOARD_SIZE-1] = 0;     // the space
     }
 
     /**
@@ -36,39 +38,37 @@ public class Environment {
     }
 
     boolean isFinalStateAchieved() {
-//        return board[0][0] == 1;
-
-        for (int i=0;i<15;i++) {
-            if (board[i/4][i&3] != i+1) {
+        for (int i=0;i<BOARD_SIZE*BOARD_SIZE-1;i++) {
+            if (board[i] != (byte)(i+1)) {
                 return false;
             }
         }
 
-        return board[3][3] == 0;
+        return board[BOARD_SIZE*BOARD_SIZE-1] == 0;
     }
 
     EnumSet<Action> getAvailableActions() {
         EnumSet<Action> availableActions = EnumSet.noneOf(Action.class);
 
         int i;
-        for (i=0;i<16;i++) {
-            if (board[i / 4][i & 3] == 0) {     // find the space
+        for (i=0;i<BOARD_SIZE*BOARD_SIZE;i++) {
+            if (board[i] == 0) {     // find the space
                 break;
             }
         }
-        if ((i&3) > 0) {
+        if ((i%BOARD_SIZE) > 0) {
             availableActions.add(Action.MOVE_RIGHT);
         }
 
-        if ((i&3) < 3) {
+        if ((i%BOARD_SIZE) < BOARD_SIZE-1) {
             availableActions.add(Action.MOVE_LEFT);
         }
 
-        if (i/4 > 0) {
+        if (i/BOARD_SIZE > 0) {
             availableActions.add(Action.MOVE_DOWN);
         }
 
-        if (i/4 < 3) {
+        if (i/BOARD_SIZE < BOARD_SIZE-1) {
             availableActions.add(Action.MOVE_UP);
         }
 
@@ -80,31 +80,31 @@ public class Environment {
      * @param action
      */
     ActionResult step(Action action) {
-        for (int i=0;i<16;i++) {
-            if (board[i/4][i&3] == 0) {     // find the space
+        for (int i=0;i<BOARD_SIZE*BOARD_SIZE;i++) {
+            if (board[i] == 0) {     // find the space
                 int j;
                 switch (action) {
                     case MOVE_UP:
-                        j = i+4;
-                        if (j>15) {
+                        j = i+BOARD_SIZE;
+                        if (j>BOARD_SIZE*BOARD_SIZE-1) {
                             return new ActionResult(getState(), -10f, true);      // invalid move
                         }
                         break;
                     case MOVE_DOWN:
-                        j = i-4;
+                        j = i-BOARD_SIZE;
                         if (j<0) {
                             return new ActionResult(getState(), -10f, true);
                         }
                         break;
                     case MOVE_LEFT:
                         j = i+1;
-                        if (j/4 != i/4 || j>15) {
+                        if (j/BOARD_SIZE != i/BOARD_SIZE || j>BOARD_SIZE*BOARD_SIZE-1) {
                             return new ActionResult(getState(), -10f, true);
                         }
                         break;
                     case MOVE_RIGHT:
                         j = i-1;
-                        if (j/4 != i/4 || j<0) {
+                        if (j/BOARD_SIZE != i/BOARD_SIZE || j<0) {
                             return new ActionResult(getState(), -10f, true);
                         }
                         break;
@@ -112,8 +112,8 @@ public class Environment {
                         throw new RuntimeException("WTF? " + action);
                 }
 
-                board[i/4][i&3] = board[j/4][j&3];
-                board[j/4][j&3] = 0;
+                board[i] = board[j];
+                board[j] = 0;
                 break;
             }
         }
@@ -131,16 +131,16 @@ public class Environment {
         StringBuilder sb = new StringBuilder();
         sb.append("-------------");
 
-        for (int i=0;i<16;i++) {
-            if ((i&3) == 0) {
+        for (int i=0;i<BOARD_SIZE*BOARD_SIZE;i++) {
+            if ((i%BOARD_SIZE) == 0) {
                 sb.append("\n|");
             }
 
-            val = board[i/4][i&3];
+            val = board[i];
             if (val == 0) {
                 sb.append("  ");
             } else {
-                sb.append(String.format("%2d", board[i/4][i&3]));
+                sb.append(String.format("%2d", board[i]));
             }
             sb.append("|");
         }
@@ -151,11 +151,8 @@ public class Environment {
     }
 
     State getState() {
-        byte[] bytes = new byte[16];
-        System.arraycopy(board[0], 0, bytes, 0, 4);
-        System.arraycopy(board[1], 0, bytes, 4, 4);
-        System.arraycopy(board[2], 0, bytes, 8, 4);
-        System.arraycopy(board[3], 0, bytes, 12, 4);
+        byte[] bytes = new byte[BOARD_SIZE*BOARD_SIZE];
+        System.arraycopy(board, 0, bytes, 0, BOARD_SIZE*BOARD_SIZE);
         return new State(bytes);
     }
 }
