@@ -50,14 +50,16 @@ public class Main {
         }
 
         learningExecutorService.shutdown();
-        learningExecutorService.awaitTermination(1, TimeUnit.DAYS);
+        testingExecutorService.shutdown();
+        learningExecutorService.awaitTermination(1, TimeUnit.HOURS);
+        testingExecutorService.awaitTermination(1,TimeUnit.HOURS);
 
         System.out.println("**************** Found " + totalSuccessCount.get() + " solutions out of " + EPISODES);
         System.out.println(samplingCounters);
         System.out.println("Number of moves necessary to solve puzzle: " + Arrays.deepToString(numberOfMovesInEpisodes.toArray()));
         System.out.println("Sucess rate [%]: " + Arrays.deepToString(sucessRate.toArray()));
 
-        // saveToDisk(qTable);
+        saveToDisk(qTable);
     }
 
     /**
