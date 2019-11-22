@@ -28,6 +28,11 @@ public class State {
 
     @Override
     public String toString() {
-        return new Environment(kostka).toString();      // TODO: rework this ugly hack, ble
+        StringBuilder sb = new StringBuilder();
+        for (int i=0;i<24;i++) {
+            int colorIndex = (kostka.get(i * 3) ? 4 : 0) + (kostka.get(i * 3 + 1) ? 2 : 0) + (kostka.get(i * 3 + 2) ? 1 : 0);
+            sb.append(Environment.Color.getByIndex(colorIndex));
+        }
+        return sb.toString();
     }
 }

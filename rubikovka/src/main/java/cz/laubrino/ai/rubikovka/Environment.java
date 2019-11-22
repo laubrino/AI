@@ -212,9 +212,9 @@ public class Environment {
         }
 
         if (isFinalStateAchieved()) {
-            return new ActionResult(getState(), 10f, true);
+            return new ActionResult(getState(), 10000, true);
         } else {
-            return new ActionResult(getState(), 0f, false);
+            return new ActionResult(getState(), 0, false);
         }
 
     }

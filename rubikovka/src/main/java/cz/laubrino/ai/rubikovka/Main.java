@@ -12,9 +12,10 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class Main {
-    private static final long EPISODES = 20000;
+    private static final long EPISODES = 50000;
     private static final int MAX_STEPS_PER_EPISODE = 1000;
     private static final int SHUFFLE_STEPS = 1000;
+    private static final int TESTING_EPIZODES = 100;        // number of plays in each testing step during learning
     private static final String PATH = "c:/x/rubikovka-2x2x2-qtable-" + EPISODES + ".zip";
     private static final Random RANDOMS = new Random();
 
@@ -68,10 +69,9 @@ public class Main {
      */
     static int solvePuzzle(Agent agent, ExecutorService testingExecutorService) {
         int puzzleSolvedCounter;
-        int epizodes = 10;
-        List<Future<Boolean>> futures = new ArrayList<>(epizodes);
+        List<Future<Boolean>> futures = new ArrayList<>(TESTING_EPIZODES);
 
-        for (int n=0;n<epizodes;n++) {
+        for (int n=0;n<TESTING_EPIZODES;n++) {
             PuzzleSolverWorker puzzleSolverWorker = new PuzzleSolverWorker(agent);
             futures.add(testingExecutorService.submit(puzzleSolverWorker));
         }
@@ -86,7 +86,7 @@ public class Main {
         }).count();
 
 
-        int percentage = (int)((float)puzzleSolvedCounter/(float)epizodes * 100);
+        int percentage = (int)((float)puzzleSolvedCounter/(float)TESTING_EPIZODES * 100);
         return percentage;
     }
 
@@ -119,7 +119,7 @@ public class Main {
         ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(PATH)));
         zipOutputStream.putNextEntry(new ZipEntry("table.txt"));
         PrintStream printStream = new PrintStream((zipOutputStream));
-        qTable.print(printStream);
+        qTable.print(printStream, 10000);
         zipOutputStream.closeEntry();
         printStream.close();
         System.out.println("done.");
