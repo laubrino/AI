@@ -1,28 +1,45 @@
 package cz.laubrino.ai.rubikovka;
 
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.Random;
 
-import static cz.laubrino.ai.rubikovka.Environment.Colors.*;
+import static cz.laubrino.ai.rubikovka.Environment.Color.*;
 
 
 /**
+ *      OO
+ *      OO
+ *   GG|WW|BB|YY
+ *   GG|WW|BB|YY
+ *      RR
+ *      RR
+ *
+ *  White is upper face, red is front, blue is right face.
+ *
+ * Indexes of surfaces:
+ *          0  1
+ *          2  3
+ *    4  5| 6  7| 8  9|10 11
+ *   12 13|14 15|16 17|18 19
+ *         20 21
+ *         22 23
+ *
+ *
  * @author tomas.laubr on 24.10.2019.
  */
 public class Environment {
     private BitSet kostka = new BitSet(24*3);            // rubik cube 2x2x2, 3bits/color, 24 surfaces
     private Random randoms = new Random();
-    private static final Colors[] INITIAL_SURFACES = new Colors[] {O, O, O, O, G, G, W,W, B,B,Y,Y,G,G,W,W,B,B,Y,Y,R,R,R,R};
+    private static final Color[] INITIAL_SURFACES = new Color[] {O, O, O, O, G, G, W,W, B,B,Y,Y,G,G,W,W,B,B,Y,Y,R,R,R,R};
 
     public Environment() {
         reset();
     }
 
-    enum Colors {
+    enum Color {
         W, O, G, B, R, Y;
 
-        static Colors getByIndex(int index) {
+        static Color getByIndex(int index) {
             switch (index) {
                 case 0: return W;
                 case 1: return O;
@@ -45,15 +62,15 @@ public class Environment {
         }
     }
 
-    void set(int surface, Colors color) {
+    void set(int surface, Color color) {
         kostka.set(surface*3, (color.ordinal()&0b100) != 0);
         kostka.set(surface*3+1, (color.ordinal()&0b10) != 0);
         kostka.set(surface*3+2, (color.ordinal()&0b1) != 0);
     }
 
-    Colors get(int surface) {
+    Color get(int surface) {
         int colorIndex = (kostka.get(surface * 3) ? 4 : 0) + (kostka.get(surface * 3 + 1) ? 2 : 0) + (kostka.get(surface * 3 + 2) ? 1 : 0);
-        return Colors.getByIndex(colorIndex);
+        return Color.getByIndex(colorIndex);
     }
 
     /**
@@ -65,6 +82,145 @@ public class Environment {
     boolean isFinalStateAchieved() {
         return false;
     }
+
+    private void turnU() {
+        Color tmp = get(6);
+        set(6, get(14));
+        set(14, get(15));
+        set(15, get(7));
+        set(7, tmp);
+
+        tmp = get(5);
+        Color tmp2 = get(13);
+
+        set(5, get(20));
+        set(13, get(21));
+        set(20, get(16));
+        set(21, get(8));
+        set(16, get(3));
+        set(8, get(2));
+        set(3, tmp);
+        set(2, tmp2);
+    }
+
+    /**
+     * Circular shifts all positions to right. (The most right position will appear on the most left)
+     * @param positions
+     */
+    private void shift(int[] positions) {
+        Color tmp = get(positions[positions.length-1]);
+        for (int i=positions.length - 2; i>=0; i--) {
+            set(positions[i+1], get(positions[i]));
+        }
+        set(positions[0], tmp);
+    }
+
+    /**
+     * Oposit direction shift (prime)
+     * @see #shift(int[])
+     * @param positions
+     */
+    private void shiftP(int[] positions) {
+        Color tmp = get(positions[0]);
+        for (int i=0; i<positions.length - 1; i++) {
+            set(positions[i], get(positions[i+1]));
+        }
+        set(positions[positions.length-1], tmp);
+    }
+
+    private void turnUp() {
+        shift(new int[]{6,14,15,7});
+        shift(new int[]{21,8,2,13});
+        shift(new int[]{20,16,3,5});
+    }
+
+    private void turnF() {
+        shift(new int[]{20,21,23,22});
+        shift(new int[]{14,16,18,12});
+        shift(new int[]{15,17,19,13});
+    }
+
+    private void turnFp() {
+        shiftP(new int[]{20,21,23,22});
+        shiftP(new int[]{14,16,18,12});
+        shiftP(new int[]{15,17,19,13});
+    }
+
+    private void turnR() {
+        shift(new int[]{16,8,9,17});
+        shift(new int[]{15,3,10,23});
+        shift(new int[]{7,1,18,21});
+    }
+    private void turnRp() {
+        shiftP(new int[]{16,8,9,17});
+        shiftP(new int[]{15,3,10,23});
+        shiftP(new int[]{7,1,18,21});
+    }
+
+    private void turnD() {
+        shift(new int[]{22,17,1,4});
+        shift(new int[]{23,9,0,12});
+        shift(new int[]{11,19,18,10});
+    }
+    private void turnDp() {
+        shiftP(new int[]{22,17,1,4});
+        shiftP(new int[]{23,9,0,12});
+        shiftP(new int[]{11,19,18,10});
+    }
+
+    private void turnL() {
+        shift(new int[]{11,2,14,22});
+        shift(new int[]{19,0,6,20});
+        shift(new int[]{5,13,12,4});
+    }
+    private void turnLp() {
+        shiftP(new int[]{11,2,14,22});
+        shiftP(new int[]{19,0,6,20});
+        shiftP(new int[]{5,13,12,4});
+    }
+    private void turnB() {
+        shift(new int[]{8,6,4,10});
+        shift(new int[]{9,7,5,11});
+        shift(new int[]{3,2,0,1});
+    }
+    private void turnBp() {
+        shiftP(new int[]{8,6,4,10});
+        shiftP(new int[]{9,7,5,11});
+        shiftP(new int[]{3,2,0,1});
+    }
+
+
+    public void step(Action action) {
+        switch (action) {
+            case U: turnU();
+                break;
+            case Up: turnUp();
+                break;
+            case F: turnF();
+                break;
+            case Fp: turnFp();
+                break;
+            case R: turnR();
+                break;
+            case Rp: turnRp();
+                break;
+            case D: turnD();
+                break;
+            case Dp: turnDp();
+                break;
+            case L: turnL();
+                break;
+            case Lp: turnLp();
+                break;
+            case B: turnB();
+                break;
+            case Bp: turnBp();
+                break;
+
+            default: throw new RuntimeException("Not implemented " + action);
+        }
+    }
+
 //
 //    EnumSet<Action> getAvailableActions() {
 //        return null;
