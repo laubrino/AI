@@ -99,4 +99,15 @@ class EnvironmentTest {
         assertNotEquals(s1, s2);
     }
 
+    @Test
+    void testReset() {
+        Environment environment = new Environment();
+        String s = environment.toString();
+
+        environment.shuffle(100);
+        environment.reset();
+        assertTrue(environment.isFinalStateAchieved());
+        assertEquals(s, environment.toString());
+    }
+
 }

@@ -1,6 +1,7 @@
 package cz.laubrino.ai.rubikovka;
 
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.Random;
 
 import static cz.laubrino.ai.rubikovka.Environment.Color.*;
@@ -31,9 +32,14 @@ public class Environment {
     private BitSet kostka = new BitSet(24*3);            // rubik cube 2x2x2, 3bits/color, 24 surfaces
     private Random randoms = new Random();
     private static final Color[] INITIAL_SURFACES = new Color[] {O, O, O, O, G, G, W,W, B,B,Y,Y,G,G,W,W,B,B,Y,Y,R,R,R,R};
+    private static final EnumSet<Action> AVAILABLE_ACTIONS = EnumSet.allOf(Action.class);
 
     public Environment() {
         reset();
+    }
+
+    public Environment(BitSet init) {
+        kostka = (BitSet)init.clone();
     }
 
     enum Color {
@@ -79,13 +85,13 @@ public class Environment {
         }
     }
 
-    void set(int surface, Color color) {
+    private void set(int surface, Color color) {
         kostka.set(surface*3, (color.ordinal()&0b100) != 0);
         kostka.set(surface*3+1, (color.ordinal()&0b10) != 0);
         kostka.set(surface*3+2, (color.ordinal()&0b1) != 0);
     }
 
-    Color get(int surface) {
+    private Color get(int surface) {
         int colorIndex = (kostka.get(surface * 3) ? 4 : 0) + (kostka.get(surface * 3 + 1) ? 2 : 0) + (kostka.get(surface * 3 + 2) ? 1 : 0);
         return Color.getByIndex(colorIndex);
     }
@@ -171,9 +177,11 @@ public class Environment {
         }
     }
 
+    EnumSet<Action> getAvailableActions() {
+        return AVAILABLE_ACTIONS;
+    }
 
-
-    public void step(Action action) {
+    public ActionResult step(Action action) {
         switch (action) {
             case U: makeTurn(U_SHIFTS, false);
                 break;
@@ -202,14 +210,14 @@ public class Environment {
 
             default: throw new RuntimeException("Not implemented " + action);
         }
+
+        if (isFinalStateAchieved()) {
+            return new ActionResult(getState(), 10f, true);
+        } else {
+            return new ActionResult(getState(), 0f, false);
+        }
+
     }
-
-//
-//    EnumSet<Action> getAvailableActions() {
-//        return null;
-//    }
-//
-
 
 
     //
@@ -223,10 +231,8 @@ public class Environment {
                 "  " + get(22) + get(23) + "\n";
         return sb;
     }
-//
-//    State getState() {
-//        byte[] bytes = new byte[BOARD_SIZE*BOARD_SIZE];
-//        System.arraycopy(board, 0, bytes, 0, BOARD_SIZE*BOARD_SIZE);
-//        return new State(bytes);
-//    }
+
+    State getState() {
+        return new State(kostka);
+    }
 }
