@@ -39,7 +39,7 @@ public class Environment {
     enum Color {
         W, O, G, B, R, Y;
 
-        static Color getByIndex(int index) {
+        static Color getByIndex(int index) {    // same as values()[index], but faster, without new array creation
             switch (index) {
                 case 0: return W;
                 case 1: return O;
@@ -50,6 +50,23 @@ public class Environment {
                 default: throw new RuntimeException("Unknown color index " + index);
             }
         }
+    }
+
+    boolean isFinalStateAchieved() {
+        return isSameColor(0,1,2,3) && isSameColor(4,5,12,13) && isSameColor(6,7,14,15) && isSameColor(8,9,16,17)
+        && isSameColor(10,11,18,19) && isSameColor(20,21,22,23);
+    }
+
+    private boolean isSameColor(int... positions) {
+        Color color = get(positions[0]);
+
+        for (int position : positions) {
+            if (get(position) != color) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -77,12 +94,11 @@ public class Environment {
      * randomly move with numbers
      */
     void shuffle(int numberOfShuffleMoves) {
+        for (int i=0;i<numberOfShuffleMoves;i++) {
+            int randomActionIndex = randoms.nextInt(Action.VALUES.length);
+            step(Action.VALUES[randomActionIndex]);
+        }
     }
-
-    boolean isFinalStateAchieved() {
-        return false;
-    }
-
 
     /**
      * Circular shifts all positions to right. (The most right position will appear on the most left)

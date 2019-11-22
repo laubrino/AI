@@ -71,4 +71,32 @@ class EnvironmentTest {
         assertEquals(initialState, environment.toString());
     }
 
+    @Test
+    void testIsFinalStateAchieved() {
+        Environment environment = new Environment();
+
+        assertTrue(environment.isFinalStateAchieved());
+
+        environment.step(U);
+        assertFalse(environment.isFinalStateAchieved());
+    }
+
+    @Test
+    void testShuffle() {
+        Environment environment = new Environment();
+        assertTrue(environment.isFinalStateAchieved());
+        String s = environment.toString();
+
+        environment.shuffle(1000);
+        String s1 = environment.toString();
+        System.out.println(s1);
+        environment.shuffle(1000);
+        String s2 = environment.toString();
+        System.out.println(s2);
+
+        assertFalse(environment.isFinalStateAchieved());
+        assertNotEquals(s, s2);
+        assertNotEquals(s1, s2);
+    }
+
 }
