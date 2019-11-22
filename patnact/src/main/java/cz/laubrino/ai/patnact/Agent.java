@@ -35,7 +35,7 @@ public class Agent {
 
     public Action chooseAction(State state, double epsilon) {
         if (randoms.nextDouble() < epsilon) {       // take random action
-            return Action.values()[randoms.nextInt(Action.values().length)];
+            return Action.VALUES[randoms.nextInt(Action.VALUES.length)];
         } else {
             return qTable.maxAction(state);
         }

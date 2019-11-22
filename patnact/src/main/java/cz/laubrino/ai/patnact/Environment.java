@@ -33,7 +33,7 @@ public class Environment {
      */
     void shuffle(int numberOfShuffleMoves) {
         for (int i=0;i<numberOfShuffleMoves;i++) {
-            step(Action.values()[randoms.nextInt(4)]);
+            step(Action.VALUES[randoms.nextInt(4)]);
         }
     }
 

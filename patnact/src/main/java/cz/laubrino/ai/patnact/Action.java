@@ -7,5 +7,7 @@ public enum Action {
     MOVE_UP,
     MOVE_DOWN,
     MOVE_LEFT,
-    MOVE_RIGHT
+    MOVE_RIGHT;
+
+    public static final Action[] VALUES = values();
 }

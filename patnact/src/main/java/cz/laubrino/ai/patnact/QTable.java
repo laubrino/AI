@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * @author tomas.laubr on 29.10.2019.
  */
 public class QTable {
-    private static final int ACTIONS_COUNT = Action.values().length;
+    private static final int ACTIONS_COUNT = Action.VALUES.length;
 
     private Map<State, Float[]> qTable = Collections.synchronizedMap(new HashMap<>());
     private Random randoms = new Random();
@@ -54,16 +54,16 @@ public class QTable {
         float maxValue = Stream.of(values).max(Float::compareTo).get();
 
         List<Action> maxActions = new ArrayList<>();
-        for (int i=0;i<Action.values().length;i++) {
+        for (int i=0;i<Action.VALUES.length;i++) {
             if (values[i] == maxValue) {
-                maxActions.add(Action.values()[i]);
+                maxActions.add(Action.VALUES[i]);
             }
         }
 
         if(!maxActions.isEmpty()) {
             return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst().get();
         } else {
-            return Action.values()[randoms.nextInt(Action.values().length)];
+            return Action.VALUES[randoms.nextInt(Action.VALUES.length)];
         }
     }
 
