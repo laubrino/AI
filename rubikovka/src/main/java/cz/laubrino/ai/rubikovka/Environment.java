@@ -1,5 +1,6 @@
 package cz.laubrino.ai.rubikovka;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Random;
@@ -29,7 +30,11 @@ import static cz.laubrino.ai.rubikovka.Environment.Color.*;
  * @author tomas.laubr on 24.10.2019.
  */
 public class Environment {
-    private BitSet kostka = new BitSet(24*3);            // rubik cube 2x2x2, 3bits/color, 24 surfaces
+    /**
+     * rubik cube 2x2x2, 3(4)bits/color, 24 surfaces => 12 bytes
+     * |00.01|02.03|04.05|.....|22.23|    data in array
+     */
+    private byte[] kostka = new byte[12];
     private Random randoms = new Random();
     private static final Color[] INITIAL_SURFACES = new Color[] {O, O, O, O, G, G, W,W, B,B,Y,Y,G,G,W,W,B,B,Y,Y,R,R,R,R};
     private static final EnumSet<Action> AVAILABLE_ACTIONS = EnumSet.allOf(Action.class);
@@ -38,8 +43,8 @@ public class Environment {
         reset();
     }
 
-    public Environment(BitSet init) {
-        kostka = (BitSet)init.clone();
+    public Environment(byte[] init) {
+        kostka = Arrays.copyOf(init, init.length);
     }
 
     enum Color {
@@ -79,20 +84,36 @@ public class Environment {
      * Reset but do not shuffle
      */
     void reset() {
-        kostka.clear();
         for (int i=0;i<24;i++) {
             set(i, INITIAL_SURFACES[i]);
         }
     }
 
     private void set(int surface, Color color) {
-        kostka.set(surface*3, (color.ordinal()&0b100) != 0);
-        kostka.set(surface*3+1, (color.ordinal()&0b10) != 0);
-        kostka.set(surface*3+2, (color.ordinal()&0b1) != 0);
+        int arrayIndex = surface >> 1;
+        byte v = kostka[arrayIndex];
+
+        if ((surface & 1) == 1) {
+            v = (byte)(v & 0xf0);
+            v = (byte) (v | color.ordinal());
+        } else {
+            v = (byte)(v & 0x0f);
+            v = (byte) (v | (color.ordinal()<<4));
+        }
+
+        kostka[arrayIndex] = v;
     }
 
     private Color get(int surface) {
-        int colorIndex = (kostka.get(surface * 3) ? 4 : 0) + (kostka.get(surface * 3 + 1) ? 2 : 0) + (kostka.get(surface * 3 + 2) ? 1 : 0);
+        int arrayIndex = surface >> 1;
+        int colorIndex = kostka[arrayIndex];
+
+        if ((surface & 1) == 1) {   //
+            colorIndex = colorIndex & 0x0f;
+        } else {
+            colorIndex = (colorIndex & 0xf0) >> 4;
+        }
+
         return Color.getByIndex(colorIndex);
     }
 
