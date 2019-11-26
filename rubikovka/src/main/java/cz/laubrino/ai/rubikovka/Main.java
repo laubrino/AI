@@ -12,8 +12,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class Main {
-    private static final long EPISODES = 50000;
-    private static final int MAX_STEPS_PER_EPISODE = 1000;
+    private static final long EPISODES = 50_000_000;
+    private static final int MAX_STEPS_PER_EPISODE = 1_000;
     private static final int SHUFFLE_STEPS = 1000;
     private static final int TESTING_EPIZODES = 100;        // number of plays in each testing step during learning
     private static final String PATH = "c:/x/rubikovka-2x2x2-qtable-" + EPISODES + ".zip";
@@ -81,6 +81,7 @@ public class Main {
                 return booleanFuture.get();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
+                Thread.currentThread().interrupt();
                 return false;
             }
         }).count();
@@ -119,7 +120,7 @@ public class Main {
         ZipOutputStream zipOutputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(PATH)));
         zipOutputStream.putNextEntry(new ZipEntry("table.txt"));
         PrintStream printStream = new PrintStream((zipOutputStream));
-        qTable.print(printStream, 10000);
+        qTable.print(printStream);
         zipOutputStream.closeEntry();
         printStream.close();
         System.out.println("done.");
@@ -147,51 +148,54 @@ public class Main {
 
         @Override
         public void run() {
-            Environment environment = new Environment();
-            environment.reset();
-            environment.shuffle(SHUFFLE_STEPS);
+            try {
+                Environment environment = new Environment();
+                environment.reset();
+                environment.shuffle(SHUFFLE_STEPS);
 
-            if (System.currentTimeMillis() > (lastTimePrint.get() + 1_000)) {
-                System.out.println("Iteration n = " + n);
-                System.out.println("Epsilon = " + agent.getEpsilon());
-                System.out.println(environment);
-                lastTimePrint.set(System.currentTimeMillis());
-            }
-
-            State s = null;
-
-            int i;
-            for (i = 0; i< MAX_STEPS_PER_EPISODE; i++) {
-                Action action = agent.chooseAction(environment.getState());
-
-                ActionResult actionResult = environment.step(action);
-
-                agent.qLearn(actionResult.getState(), actionResult.getReward(), action, s);
-
-                s = actionResult.getState();
-
-                if (actionResult.isDone()) {
-                    if (actionResult.getReward() < 0f) {
-                        samplingCounters.incrementAndGet("Illegal moves");
-                    }
-                    if (actionResult.getReward() > 0f) {
-//                        System.out.println(
-//                                "******************************************************************\n" +
-//                                "*********************  B I N G O  ********************************\n" +
-//                                environment+"\n"+
-//                                "******************************************************************");
-                        totalSuccessCount.incrementAndGet();
-                        samplingCounters.incrementAndGet("Found solutions");
-                    }
-                    break;
+                if (System.currentTimeMillis() > (lastTimePrint.get() + 1_000)) {
+                    System.out.println("Iteration n = " + n);
+                    System.out.println("Epsilon = " + agent.getEpsilon());
+                    System.out.println(environment);
+                    lastTimePrint.set(System.currentTimeMillis());
                 }
-            }
 
-            if (n % (EPISODES/1000) == 0) {
-                samplingCounters.sample();
-                numberOfMovesInEpisodes.add(i);
-            }
+                State s = null;
 
+                int i;
+                for (i = 0; i< MAX_STEPS_PER_EPISODE; i++) {
+                    Action action = agent.chooseAction(environment.getState());
+
+                    ActionResult actionResult = environment.step(action);
+
+                    agent.qLearn(actionResult.getState(), actionResult.getReward(), action, s);
+
+                    s = actionResult.getState();
+
+                    if (actionResult.isDone()) {
+                        if (actionResult.getReward() < 0f) {
+                            samplingCounters.incrementAndGet("Illegal moves");
+                        }
+                        if (actionResult.getReward() > 0f) {
+//                            System.out.println(
+//                                    "******************************************************************\n" +
+//                                            "*********************  B I N G O  ********************************\n" +
+//                                            environment+"\n"+
+//                                            "******************************************************************");
+                            totalSuccessCount.incrementAndGet();
+                            samplingCounters.incrementAndGet("Found solutions");
+                        }
+                        break;
+                    }
+                }
+
+                if (n % (EPISODES/1000) == 0) {
+                    samplingCounters.sample();
+                    numberOfMovesInEpisodes.add(i);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

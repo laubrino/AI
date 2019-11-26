@@ -5,8 +5,8 @@ package cz.laubrino.ai.rubikovka;
  * @author tomas.laubr on 21.11.2019.
  */
 public enum Action {
-    F, B, R, L, U, D,
-    Fp, Bp, Rp, Lp, Up, Dp;
+    F, R, D;
+//    Fp, Bp, Rp, Lp, Up, Dp;
 
     public static Action[] VALUES = values();
 }

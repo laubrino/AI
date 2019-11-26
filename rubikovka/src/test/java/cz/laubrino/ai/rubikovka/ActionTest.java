@@ -10,7 +10,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class ActionTest {
     @Test
     void testValues() {
-        assertEquals(12, Action.VALUES.length);
+//        assertEquals(12, Action.VALUES.length);
+        assertEquals(3, Action.VALUES.length);
+    }
+
+    @Test
+    void neco() {
+        short x = 324;
+
+
+        short y = (short)(x * 0.9);
+
+        System.out.println(y);
     }
 
 }

@@ -7,7 +7,7 @@ public class Agent {
     private static final float GAMMA = 0.9f;
     private static final float EPSILON_DECAY = 0.99995f;
 
-    private final QTable<Short> qTable;
+    private final QTable qTable;
     private Random randoms = new Random();
     volatile private double epsilon = 0.5f;
     volatile private long learnsCounter = 0;
@@ -20,7 +20,7 @@ public class Agent {
         if (s != null) {
             float oldQ = qTable.get(s, a);
             float newQ = oldQ + ALPHA*(r + GAMMA * qTable.max(newS) - oldQ);
-            qTable.set(s, a, (short)newQ);
+            qTable.set(s, a, newQ);
 
             learnsCounter++;
             if (learnsCounter > 1000) {

@@ -1,7 +1,6 @@
 package cz.laubrino.ai.rubikovka;
 
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Random;
 
@@ -64,20 +63,14 @@ public class Environment {
     }
 
     boolean isFinalStateAchieved() {
-        return isSameColor(0,1,2,3) && isSameColor(4,5,12,13) && isSameColor(6,7,14,15) && isSameColor(8,9,16,17)
-        && isSameColor(10,11,18,19) && isSameColor(20,21,22,23);
+        return isFaceSameColor(0,1,2,3) && isFaceSameColor(4,5,12,13) && isFaceSameColor(6,7,14,15) && isFaceSameColor(8,9,16,17)
+        && isFaceSameColor(10,11,18,19) && isFaceSameColor(20,21,22,23);
     }
 
-    private boolean isSameColor(int... positions) {
-        Color color = get(positions[0]);
+    private boolean isFaceSameColor(int surface0, int surface1, int surface2, int surface3) {
+        Color color = get(surface0);
 
-        for (int position : positions) {
-            if (get(position) != color) {
-                return false;
-            }
-        }
-
-        return true;
+        return color == get(surface1) && color == get(surface2) && color == get(surface3);
     }
 
     /**
@@ -204,30 +197,30 @@ public class Environment {
 
     public ActionResult step(Action action) {
         switch (action) {
-            case U: makeTurn(U_SHIFTS, false);
-                break;
-            case Up: makeTurn(U_SHIFTS, true);
-                break;
+//            case U: makeTurn(U_SHIFTS, false);
+//                break;
+//            case Up: makeTurn(U_SHIFTS, true);
+//                break;
             case F: makeTurn(F_SHIFTS, false);
                 break;
-            case Fp: makeTurn(F_SHIFTS, true);
-                break;
+//            case Fp: makeTurn(F_SHIFTS, true);
+//                break;
             case R: makeTurn(R_SHIFTS, false);
                 break;
-            case Rp: makeTurn(R_SHIFTS, true);
-                break;
+//            case Rp: makeTurn(R_SHIFTS, true);
+//                break;
             case D: makeTurn(D_SHIFTS, false);
                 break;
-            case Dp: makeTurn(D_SHIFTS, true);
-                break;
-            case L: makeTurn(L_SHIFTS, false);
-                break;
-            case Lp: makeTurn(L_SHIFTS, true);
-                break;
-            case B: makeTurn(B_SHIFTS, false);
-                break;
-            case Bp: makeTurn(B_SHIFTS, true);
-                break;
+//            case Dp: makeTurn(D_SHIFTS, true);
+//                break;
+//            case L: makeTurn(L_SHIFTS, false);
+//                break;
+//            case Lp: makeTurn(L_SHIFTS, true);
+//                break;
+//            case B: makeTurn(B_SHIFTS, false);
+//                break;
+//            case Bp: makeTurn(B_SHIFTS, true);
+//                break;
 
             default: throw new RuntimeException("Not implemented " + action);
         }

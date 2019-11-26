@@ -3,57 +3,59 @@ package cz.laubrino.ai.rubikovka;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.stream.Stream;
+import java.util.stream.IntStream;
 
-public class QTable<N extends Number & Comparable> {
+/**
+ * @author tomas.laubr on 29.10.2019.
+ */
+public class QTable {
     private static final int ACTIONS_COUNT = Action.VALUES.length;
 
-    private Map<State, N[]> qTable = Collections.synchronizedMap(new HashMap<>());
+    private Map<State, short[]> qTable = Collections.synchronizedMap(new HashMap<>());
     private Random randoms = new Random();
 
-    static <N> N[] newArray(int length, N... array)
-    {
-        return (N[])Array.newInstance(array.getClass().getComponentType(), length);
+    void set(State state, Action action, float value) {
+        short[] values = getOrInit(state);
+        values[action.ordinal()] = (short)value;
     }
 
-    void set(State state, Action action, N value) {
-        N[] values = qTable.computeIfAbsent(state, k -> {
-            N[] vals = newArray(ACTIONS_COUNT);
-            Arrays.fill(vals, 0);
+    private short[] getOrInit(State state) {
+        return qTable.computeIfAbsent(state, k -> {
+            short[] vals = new short[ACTIONS_COUNT];
+            Arrays.fill(vals, (short)0);
             return vals;
         });
-        values[action.ordinal()] = value;
     }
 
-    N get(State state, Action action) {
-        N[] values = qTable.computeIfAbsent(state, k -> {
-            N[] vals = newArray(ACTIONS_COUNT);
-            Arrays.fill(vals, 0);
-            return vals;
-        });
+
+
+    short get(State state, Action action) {
+        short[] values = getOrInit(state);
         return values[action.ordinal()];
     }
 
-    N max(State state) {
-        N[] values = qTable.computeIfAbsent(state, k -> {
-            N[] vals = newArray(ACTIONS_COUNT);
-            Arrays.fill(vals, 0);
-            return vals;
-        });
+    private short maxValue(short[] values) {
+        short maxValue = Short.MIN_VALUE;
 
-        return Arrays.stream(values).max(N::compareTo).orElseThrow(() -> new RuntimeException("There has to be one..."));
+        for (int i=0;i<values.length;i++) {
+            if (values[i] > maxValue) {
+                maxValue = values[i];
+            }
+        }
+
+        return maxValue;
+    }
+
+    short max(State state) {
+        short[] values = getOrInit(state);
+        return maxValue(values);
     }
 
     Action maxAction(State state) {
-        N[] values = qTable.computeIfAbsent(state, k -> {
-            N[] vals = newArray(ACTIONS_COUNT);
-            Arrays.fill(vals, 0);
-            return vals;
-        });
+        short[] values = getOrInit(state);
 
-        N maxValue = Stream.of(values).max(N::compareTo).get();
+        short maxValue = maxValue(values);
 
         List<Action> maxActions = new ArrayList<>();
         for (int i=0;i<Action.VALUES.length;i++) {
@@ -70,37 +72,31 @@ public class QTable<N extends Number & Comparable> {
     }
 
     void output(DataOutputStream os) throws IOException {
-        for (Map.Entry<State, N[]> entry : qTable.entrySet()) {
+        for (Map.Entry<State, short[]> entry : qTable.entrySet()) {
             State state = entry.getKey();
-            N[] values = entry.getValue();
+            short[] values = entry.getValue();
             os.writeChars(state.toString());
             os.writeChars(": ");
-            os.writeChars(Arrays.deepToString(values));
+            os.writeChars(Arrays.toString(values));
             os.writeChars("\n");
         }
     }
 
     void print(PrintStream ps) {
         this.print(ps, Long.MAX_VALUE);
-        qTable.forEach((state,values) -> {
-            ps.print(state);
-            ps.print(": ");
-            ps.println(Arrays.deepToString(values));
-        });
     }
 
     void print(PrintStream ps, long maxRecords) {
-        for (Map.Entry<State, N[]> entry : qTable.entrySet()) {
+        for (Map.Entry<State, short[]> entry : qTable.entrySet()) {
             if (maxRecords-- <= 0) {
                 break;
             }
 
             State state = entry.getKey();
-            N[] values = entry.getValue();
+            short[] values = entry.getValue();
             ps.print(state);
             ps.print(": ");
-            ps.println(Arrays.deepToString(values));
+            ps.println(Arrays.toString(values));
         }
     }
-
 }
