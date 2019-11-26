@@ -57,7 +57,7 @@ public class QTable {
 
         short maxValue = maxValue(values);
 
-        List<Action> maxActions = new ArrayList<>();
+        List<Action> maxActions = new LinkedList<>();
         for (int i=0;i<Action.VALUES.length;i++) {
             if (values[i] == maxValue) {
                 maxActions.add(Action.VALUES[i]);
@@ -65,7 +65,8 @@ public class QTable {
         }
 
         if(!maxActions.isEmpty()) {
-            return maxActions.stream().skip(randoms.nextInt(maxActions.size())).findFirst().get();
+            int randomActionIndex = randoms.nextInt(maxActions.size());
+            return maxActions.get(randomActionIndex);
         } else {
             return Action.VALUES[randoms.nextInt(Action.VALUES.length)];
         }
