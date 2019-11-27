@@ -6,7 +6,6 @@ public class Agent<A extends Enum<A>> {
     private final float alpha;
     private final float gamma;
     private final float epsilonDecay;
-    private final A[] actions;
     private final QTable<A> qTable;
 
     private volatile float epsilon;
@@ -28,7 +27,6 @@ public class Agent<A extends Enum<A>> {
         this.epsilon = epsilon;
         this.epsilonDecay = epsilonDecay;
 
-        this.actions = actions.getEnumConstants();
         this.qTable = new QTable<>(actions);
     }
 
@@ -52,16 +50,25 @@ public class Agent<A extends Enum<A>> {
      * @param eGreedyExplore if {@code true} select random action with some probability. Otherwise choose best action.
      * @return
      */
-    public A chooseAction(State state, boolean eGreedyExplore) {
+    public A chooseAction(State state, A[] availableActions, boolean eGreedyExplore) {
         if (eGreedyExplore && randoms.nextDouble() < epsilon) {       // take random action
-            return actions[randoms.nextInt(actions.length)];
+            return availableActions[randoms.nextInt(availableActions.length)];
         } else {
             return qTable.maxAction(state);
         }
     }
 
+    public A chooseAction(State state, A[] availableActions) {
+        return chooseAction(state, availableActions, true);
+    }
+
+    /**
+     * For testing an already learned agent.
+     * @param state
+     * @return
+     */
     public A chooseAction(State state) {
-        return chooseAction(state, true);
+        return chooseAction(state, null, false);
     }
 
     public double getEpsilon() {
