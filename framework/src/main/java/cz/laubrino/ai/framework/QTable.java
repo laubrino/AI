@@ -9,13 +9,13 @@ import java.util.*;
  * Parametrized by an actions enum
  * @author tomas.laubr on 26.11.2019.
  */
-public class QTable<A extends Enum<A>> {
-    private final A[] values;
+class QTable<A extends Enum<A>> {
+    private final A[] actions;
     private Map<State, short[]> qTable = Collections.synchronizedMap(new HashMap<>());
     private Random randoms = new Random();
 
-    public QTable(Class<A> enumType) {
-        values = enumType.getEnumConstants();
+    QTable(Class<A> actions) {
+        this.actions = actions.getEnumConstants();
     }
 
     void set(State state, A action, short value) {
@@ -25,7 +25,7 @@ public class QTable<A extends Enum<A>> {
 
     private short[] getOrInit(State state) {
         return qTable.computeIfAbsent(state, k -> {
-            short[] vals = new short[values.length];
+            short[] vals = new short[actions.length];
             Arrays.fill(vals, (short)0);
             return vals;
         });
@@ -41,9 +41,9 @@ public class QTable<A extends Enum<A>> {
     private short maxValue(short[] values) {
         short maxValue = Short.MIN_VALUE;
 
-        for (int i=0;i<values.length;i++) {
-            if (values[i] > maxValue) {
-                maxValue = values[i];
+        for (short value : values) {
+            if (value > maxValue) {
+                maxValue = value;
             }
         }
 
@@ -61,9 +61,9 @@ public class QTable<A extends Enum<A>> {
         short maxValue = maxValue(values);
 
         List<A> maxActions = new LinkedList<>();
-        for (int i=0;i<this.values.length;i++) {
+        for (int i = 0; i<this.actions.length; i++) {
             if (values[i] == maxValue) {
-                maxActions.add(this.values[i]);
+                maxActions.add(this.actions[i]);
             }
         }
 
@@ -71,7 +71,7 @@ public class QTable<A extends Enum<A>> {
             int randomActionIndex = randoms.nextInt(maxActions.size());
             return maxActions.get(randomActionIndex);
         } else {
-            return this.values[randoms.nextInt(this.values.length)];
+            return this.actions[randoms.nextInt(this.actions.length)];
         }
     }
 
