@@ -24,6 +24,30 @@ public class Processor<A extends Enum<A>> {
         this.testingEpisodes = testingEpisodes;
     }
 
+    /**
+     * This queue blocks on offer() => used in feeding executor service with workers
+     */
+    private static class ExecutorBlockingQueue extends LinkedBlockingQueue<Runnable>
+    {
+        ExecutorBlockingQueue()
+        {
+            super(1000);
+        }
+
+        @Override
+        public boolean offer(Runnable runnable)
+        {
+            // turn offer() and add() into a blocking calls (unless interrupted)
+            try {
+                put(runnable);
+                return true;
+            } catch(InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+            return false;
+        }
+    }
+
     public void process() throws IOException, InterruptedException {
         SamplingCounters samplingCounters = new SamplingCounters("Found solutions");
         List<Integer> numberOfMovesInEpisodes = Collections.synchronizedList(new ArrayList<>());
@@ -33,11 +57,13 @@ public class Processor<A extends Enum<A>> {
         AtomicLong lastTimePrint = new AtomicLong(System.currentTimeMillis());
         AtomicInteger totalSuccessCount = new AtomicInteger(0);
 
-        ExecutorService learningExecutorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
-                new ExecutorBlockingQueue<>(100));
+        int cores = Runtime.getRuntime().availableProcessors();
 
-        ExecutorService testingExecutorService = new ThreadPoolExecutor(5, 5, 0L, TimeUnit.MILLISECONDS,
-                new ExecutorBlockingQueue<>(1000));
+        ExecutorService learningExecutorService = new ThreadPoolExecutor(cores+1, cores+1, 0L, TimeUnit.MILLISECONDS,
+                new ExecutorBlockingQueue());
+
+        ExecutorService testingExecutorService = new ThreadPoolExecutor(cores+1, cores+1, 0L, TimeUnit.MILLISECONDS,
+                new ExecutorBlockingQueue());
 
         for (int n = 0; n < episodes; n++) {
             Worker worker = new Worker(lastTimePrint, agent, totalSuccessCount, n, numberOfMovesInEpisodes, samplingCounters);
@@ -120,16 +146,16 @@ public class Processor<A extends Enum<A>> {
         private final SamplingCounters samplingCounters;
 
         public Worker(AtomicLong lastTimePrint, Agent<A> agent, AtomicInteger totalSuccessCount,
-                      int n, List<Integer> numberOfMovesInEpisodes, SamplingCounters samplingCounters) {
+                      int episode, List<Integer> numberOfMovesInEpisodes, SamplingCounters samplingCounters) {
             this.lastTimePrint = lastTimePrint;
             this.agent = agent;
             this.totalSuccessCount = totalSuccessCount;
-            this.n = n;
+            this.episode = episode;
             this.numberOfMovesInEpisodes = numberOfMovesInEpisodes;
             this.samplingCounters = samplingCounters;
         }
 
-        private final int n;
+        private final int episode;
 
 
         @Override
@@ -139,7 +165,7 @@ public class Processor<A extends Enum<A>> {
                 environment.reset();
 
                 if (System.currentTimeMillis() > (lastTimePrint.get() + 1_000)) {
-                    System.out.println("Iteration n = " + n);
+                    System.out.println("Episode = " + episode);
                     System.out.println("Epsilon = " + agent.getEpsilon());
                     System.out.println(environment);
                     lastTimePrint.set(System.currentTimeMillis());
@@ -166,7 +192,7 @@ public class Processor<A extends Enum<A>> {
                     }
                 }
 
-                if (n % (episodes/1000) == 0) {
+                if (episode % (episodes/1000) == 0) {
                     samplingCounters.sample();
                     numberOfMovesInEpisodes.add(i);
                 }
