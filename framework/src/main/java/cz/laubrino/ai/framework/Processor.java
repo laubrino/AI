@@ -1,26 +1,24 @@
 package cz.laubrino.ai.framework;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class Processor<A extends Enum<A>> {
-    private final Agent agent;
-    private final Environment environment;
+    private final Agent<A> agent;
+    private final EnvironmentFactory<A> environmentFactory;
     private final long episodes;
     private final int maxStepsPerEpisode;
     private final int testingEpisodes;          // number of plays in each testing step during learning (may be 0)
 
-    public Processor(Agent agent, Environment environment, long episodes, int maxStepsPerEpisode, int testingEpisodes) {
+    public Processor(Agent<A> agent, EnvironmentFactory<A> environmentFactory, long episodes, int maxStepsPerEpisode, int testingEpisodes) {
         this.agent = agent;
-        this.environment = environment;
+        this.environmentFactory = environmentFactory;
         this.episodes = episodes;
         this.maxStepsPerEpisode = maxStepsPerEpisode;
         this.testingEpisodes = testingEpisodes;
@@ -66,12 +64,12 @@ public class Processor<A extends Enum<A>> {
      * Let an already trained agent to solve the puzzle
      * @return percent of solved puzzles
      */
-    int solvePuzzle(Agent agent, ExecutorService testingExecutorService) {
+    int solvePuzzle(Agent<A> agent, ExecutorService testingExecutorService) {
         int puzzleSolvedCounter;
         List<Future<Boolean>> futures = new ArrayList<>(testingEpisodes);
 
         for (int n=0;n<testingEpisodes;n++) {
-            TesterWorker<A> testerWorker = new TesterWorker(agent);
+            TesterWorker testerWorker = new TesterWorker(agent);
             futures.add(testingExecutorService.submit(testerWorker));
         }
 
@@ -91,22 +89,21 @@ public class Processor<A extends Enum<A>> {
     }
 
 
-    private static class TesterWorker<E extends Enum<E>> implements Callable<Boolean> {
-        private final Agent<E> agent;
+    private class TesterWorker implements Callable<Boolean> {
+        private final Agent<A> agent;
 
-        private TesterWorker(Agent agent) {
+        private TesterWorker(Agent<A> agent) {
             this.agent = agent;
         }
 
         @Override
         public Boolean call() {
-            Environment environment = new Environment();
-
+            Environment<A> environment = environmentFactory.getInstance();
             environment.reset();
 
             int i;
             for (i=0;i<1000 && !environment.isFinalStateAchieved();i++) {       // no more that 1000 steps per episode
-                E action = agent.chooseAction(environment.getState());
+                A action = agent.chooseAction(environment.getState());
                 environment.step(action);
             }
 
@@ -115,14 +112,14 @@ public class Processor<A extends Enum<A>> {
     }
 
 
-    private static class Worker implements Runnable {
+    private class Worker implements Runnable {
         private final AtomicLong lastTimePrint;
-        private final Agent agent;
+        private final Agent<A> agent;
         private final List<Integer> numberOfMovesInEpisodes;
         private final AtomicInteger totalSuccessCount;
         private final SamplingCounters samplingCounters;
 
-        public Worker(AtomicLong lastTimePrint, Agent agent, AtomicInteger totalSuccessCount,
+        public Worker(AtomicLong lastTimePrint, Agent<A> agent, AtomicInteger totalSuccessCount,
                       int n, List<Integer> numberOfMovesInEpisodes, SamplingCounters samplingCounters) {
             this.lastTimePrint = lastTimePrint;
             this.agent = agent;
@@ -138,7 +135,7 @@ public class Processor<A extends Enum<A>> {
         @Override
         public void run() {
             try {
-                Environment environment = new Environment();
+                Environment<A> environment = environmentFactory.getInstance();
                 environment.reset();
 
                 if (System.currentTimeMillis() > (lastTimePrint.get() + 1_000)) {
@@ -151,8 +148,8 @@ public class Processor<A extends Enum<A>> {
                 State s = null;
 
                 int i;
-                for (i = 0; i< MAX_STEPS_PER_EPISODE; i++) {
-                    Action action = agent.chooseAction(environment.getState());
+                for (i = 0; i< maxStepsPerEpisode; i++) {
+                    A action = agent.chooseAction(environment.getState());
 
                     ActionResult actionResult = environment.step(action);
 
@@ -169,7 +166,7 @@ public class Processor<A extends Enum<A>> {
                     }
                 }
 
-                if (n % (EPISODES/1000) == 0) {
+                if (n % (episodes/1000) == 0) {
                     samplingCounters.sample();
                     numberOfMovesInEpisodes.add(i);
                 }

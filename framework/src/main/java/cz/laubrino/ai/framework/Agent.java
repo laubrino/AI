@@ -1,6 +1,9 @@
 package cz.laubrino.ai.framework;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.IntUnaryOperator;
 
 public class Agent<A extends Enum<A>> {
     private final float alpha;
@@ -9,9 +12,9 @@ public class Agent<A extends Enum<A>> {
     private final QTable<A> qTable;
 
     private volatile float epsilon;
-    private Random randoms = new Random();
-    private volatile long learnsCounter = 0;
+    private final AtomicInteger learnsCounter = new AtomicInteger(0);
 
+    private Random randoms = new Random();
 
     /**
      *
@@ -36,10 +39,16 @@ public class Agent<A extends Enum<A>> {
             short newQ = (short)(oldQ + alpha *(r + gamma * qTable.max(newS) - oldQ));
             qTable.set(s, a, newQ);
 
-            learnsCounter++;
-            if (learnsCounter > 1000) {
-                epsilon = epsilon* epsilonDecay;
-                learnsCounter = 0;
+            int i = learnsCounter.updateAndGet(operand -> {
+                if (operand >= 1000) {
+                    return 0;
+                } else {
+                    return operand + 1;
+                }
+            });
+
+            if (i == 0) {
+                epsilon *= epsilonDecay;
             }
         }
     }
