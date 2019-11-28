@@ -1,15 +1,16 @@
 package cz.laubrino.ai.rubikovka;
 
+import cz.laubrino.ai.framework.State;
+
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * @author tomas.laubr on 22.11.2019.
  */
-public class State {
+public class RubikState extends State {
     private final byte[] kostka;
 
-    public State(byte[] kostka) {
+    public RubikState(byte[] kostka) {
         this.kostka = Arrays.copyOf(kostka, kostka.length);
     }
 
@@ -17,8 +18,8 @@ public class State {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        State state = (State) o;
-        return Arrays.equals(kostka, state.kostka);
+        RubikState rubikState = (RubikState) o;
+        return Arrays.equals(kostka, rubikState.kostka);
     }
 
     @Override
@@ -39,7 +40,7 @@ public class State {
                 colorIndex = (colorIndex & 0xf0) >> 4;
             }
 
-            sb.append(Environment.Color.getByIndex(colorIndex));
+            sb.append(RubikEnvironment.Color.getByIndex(colorIndex));
         }
 
         return sb.toString();

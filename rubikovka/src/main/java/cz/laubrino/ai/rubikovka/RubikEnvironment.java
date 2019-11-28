@@ -1,13 +1,15 @@
 package cz.laubrino.ai.rubikovka;
 
-import java.util.Arrays;
-import java.util.EnumSet;
+import cz.laubrino.ai.framework.ActionResult;
+import cz.laubrino.ai.framework.Environment;
+import cz.laubrino.ai.framework.State;
+
 import java.util.Random;
 
-import static cz.laubrino.ai.rubikovka.Environment.Color.*;
-
+import static cz.laubrino.ai.rubikovka.RubikEnvironment.Color.*;
 
 /**
+ * <pre>
  *      OO
  *      OO
  *   GG|WW|BB|YY
@@ -25,26 +27,18 @@ import static cz.laubrino.ai.rubikovka.Environment.Color.*;
  *         20 21
  *         22 23
  *
+ * </pre>
  *
- * @author tomas.laubr on 24.10.2019.
+ * @author tomas.laubr on 28.11.2019.
  */
-public class Environment {
+public class RubikEnvironment implements Environment<Action> {
     /**
      * rubik cube 2x2x2, 3(4)bits/color, 24 surfaces => 12 bytes
      * |00.01|02.03|04.05|.....|22.23|    data in array
      */
     private byte[] kostka = new byte[12];
-    private Random randoms = new Random();
     private static final Color[] INITIAL_SURFACES = new Color[] {O, O, O, O, G, G, W,W, B,B,Y,Y,G,G,W,W,B,B,Y,Y,R,R,R,R};
-    private static final EnumSet<Action> AVAILABLE_ACTIONS = EnumSet.allOf(Action.class);
-
-    public Environment() {
-        reset();
-    }
-
-    public Environment(byte[] init) {
-        kostka = Arrays.copyOf(init, init.length);
-    }
+    private Random randoms = new Random();
 
     enum Color {
         W, O, G, B, R, Y;
@@ -62,24 +56,45 @@ public class Environment {
         }
     }
 
-    boolean isFinalStateAchieved() {
+    @Override
+    public boolean isFinalStateAchieved() {
         return isFaceSameColor(0,1,2,3) && isFaceSameColor(4,5,12,13) && isFaceSameColor(6,7,14,15) && isFaceSameColor(8,9,16,17)
-        && isFaceSameColor(10,11,18,19) && isFaceSameColor(20,21,22,23);
+                && isFaceSameColor(10,11,18,19) && isFaceSameColor(20,21,22,23);
     }
 
-    private boolean isFaceSameColor(int surface0, int surface1, int surface2, int surface3) {
-        Color color = get(surface0);
-
-        return color == get(surface1) && color == get(surface2) && color == get(surface3);
-    }
-
-    /**
-     * Reset but do not shuffle
-     */
-    void reset() {
+    @Override
+    public void reset() {
         for (int i=0;i<24;i++) {
             set(i, INITIAL_SURFACES[i]);
         }
+
+        shuffle(1000);
+    }
+
+    void resetNoShuffle() {
+        for (int i=0;i<24;i++) {
+            set(i, INITIAL_SURFACES[i]);
+        }
+    }
+
+    /**
+     * randomly move Rubik's cube
+     */
+    void shuffle(int numberOfShuffleMoves) {
+        for (int i=0;i<numberOfShuffleMoves;i++) {
+            int randomActionIndex = randoms.nextInt(Action.VALUES.length);
+            step(Action.VALUES[randomActionIndex]);
+        }
+    }
+
+    @Override
+    public Action[] getAvailableActions() {
+        return Action.VALUES;
+    }
+
+    @Override
+    public State getState() {
+        return new RubikState(kostka);
     }
 
     private void set(int surface, Color color) {
@@ -110,46 +125,11 @@ public class Environment {
         return Color.getByIndex(colorIndex);
     }
 
-    /**
-     * randomly move with numbers
-     */
-    void shuffle(int numberOfShuffleMoves) {
-        for (int i=0;i<numberOfShuffleMoves;i++) {
-            int randomActionIndex = randoms.nextInt(Action.VALUES.length);
-            step(Action.VALUES[randomActionIndex]);
-        }
-    }
+    private boolean isFaceSameColor(int surface0, int surface1, int surface2, int surface3) {
+        Color color = get(surface0);
 
-    /**
-     * Circular shifts all positions to right. (The most right position will appear on the most left)
-     * @param positions
-     */
-    private void shift(int[] positions) {
-        Color tmp = get(positions[positions.length-1]);
-        for (int i=positions.length - 2; i>=0; i--) {
-            set(positions[i+1], get(positions[i]));
-        }
-        set(positions[0], tmp);
+        return color == get(surface1) && color == get(surface2) && color == get(surface3);
     }
-
-    /**
-     * Oposit direction shift (prime)
-     * @see #shift(int[])
-     * @param positions
-     */
-    private void shiftP(int[] positions) {
-        Color tmp = get(positions[0]);
-        for (int i=0; i<positions.length - 1; i++) {
-            set(positions[i], get(positions[i+1]));
-        }
-        set(positions[positions.length-1], tmp);
-    }
-
-    private static final int[][] U_SHIFTS = new int[][] {
-            new int[]{7,15,14,6},
-            new int[]{13,2,8,21},
-            new int[]{5,3,16,20}
-    };
 
     private static final int[][] F_SHIFTS = new int[][] {
             new int[]{20,21,23,22},
@@ -169,58 +149,33 @@ public class Environment {
             (new int[]{11,19,18,10})
     };
 
-    private static final int[][] L_SHIFTS = new int[][] {
-            (new int[]{11,2,14,22}),
-            (new int[]{19,0,6,20}),
-            (new int[]{5,13,12,4})
-    };
-
-    private static final int[][] B_SHIFTS = new int[][] {
-            (new int[]{8,6,4,10}),
-            (new int[]{9,7,5,11}),
-            (new int[]{3,2,0,1}),
-    };
-
-    private void makeTurn(int[][] specification, boolean prime) {
+    private void makeTurn(int[][] specification) {
         for (int[] positions : specification) {
-            if (prime) {
-                shiftP(positions);
-            } else {
-                shift(positions);
-            }
+            shift(positions);
         }
     }
 
-    EnumSet<Action> getAvailableActions() {
-        return AVAILABLE_ACTIONS;
+    /**
+     * Circular shifts all positions to right. (The most right position will appear on the most left)
+     * @param positions
+     */
+    private void shift(int[] positions) {
+        Color tmp = get(positions[positions.length-1]);
+        for (int i=positions.length - 2; i>=0; i--) {
+            set(positions[i+1], get(positions[i]));
+        }
+        set(positions[0], tmp);
     }
 
+    @Override
     public ActionResult step(Action action) {
         switch (action) {
-//            case U: makeTurn(U_SHIFTS, false);
-//                break;
-//            case Up: makeTurn(U_SHIFTS, true);
-//                break;
-            case F: makeTurn(F_SHIFTS, false);
+            case F: makeTurn(F_SHIFTS);
                 break;
-//            case Fp: makeTurn(F_SHIFTS, true);
-//                break;
-            case R: makeTurn(R_SHIFTS, false);
+            case R: makeTurn(R_SHIFTS);
                 break;
-//            case Rp: makeTurn(R_SHIFTS, true);
-//                break;
-            case D: makeTurn(D_SHIFTS, false);
+            case D: makeTurn(D_SHIFTS);
                 break;
-//            case Dp: makeTurn(D_SHIFTS, true);
-//                break;
-//            case L: makeTurn(L_SHIFTS, false);
-//                break;
-//            case Lp: makeTurn(L_SHIFTS, true);
-//                break;
-//            case B: makeTurn(B_SHIFTS, false);
-//                break;
-//            case Bp: makeTurn(B_SHIFTS, true);
-//                break;
 
             default: throw new RuntimeException("Not implemented " + action);
         }
@@ -233,8 +188,6 @@ public class Environment {
 
     }
 
-
-    //
     @Override
     public String toString() {
         String sb = "  " + get(0) + get(1) + "\n" +
@@ -244,9 +197,5 @@ public class Environment {
                 "  " + get(20) + get(21) + "\n" +
                 "  " + get(22) + get(23) + "\n";
         return sb;
-    }
-
-    State getState() {
-        return new State(kostka);
     }
 }

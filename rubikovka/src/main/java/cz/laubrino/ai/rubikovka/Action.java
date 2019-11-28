@@ -6,7 +6,6 @@ package cz.laubrino.ai.rubikovka;
  */
 public enum Action {
     F, R, D;
-//    Fp, Bp, Rp, Lp, Up, Dp;
 
     public static Action[] VALUES = values();
 }
