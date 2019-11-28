@@ -16,8 +16,8 @@ public class Processor<A extends Enum<A>> {
     private final int maxStepsPerEpisode;
     private final int testingEpisodes;          // number of plays in each testing step during learning (may be 0)
 
-    public Processor(Agent<A> agent, EnvironmentFactory<A> environmentFactory, long episodes, int maxStepsPerEpisode, int testingEpisodes) {
-        this.agent = agent;
+    public Processor(AgentConfiguration agentConfiguration, EnvironmentFactory<A> environmentFactory, long episodes, int maxStepsPerEpisode, int testingEpisodes, Class<A> actions) {
+        this.agent = new Agent<>(agentConfiguration, actions);
         this.environmentFactory = environmentFactory;
         this.episodes = episodes;
         this.maxStepsPerEpisode = maxStepsPerEpisode;

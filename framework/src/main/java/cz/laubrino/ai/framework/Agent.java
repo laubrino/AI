@@ -2,8 +2,6 @@ package cz.laubrino.ai.framework;
 
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.IntUnaryOperator;
 
 public class Agent<A extends Enum<A>> {
     private final float alpha;
@@ -24,11 +22,11 @@ public class Agent<A extends Enum<A>> {
      * @param epsilonDecay (0..1)  e.g. 0.99995f. Or 1 for no decay.
      * @param actions actions enum
      */
-    public Agent(float alpha, float gamma, float epsilon, float epsilonDecay, Class<A> actions) {
-        this.alpha = alpha;
-        this.gamma = gamma;
-        this.epsilon = epsilon;
-        this.epsilonDecay = epsilonDecay;
+    public Agent(AgentConfiguration agentConfiguration, Class<A> actions) {
+        this.alpha = agentConfiguration.getAlpha();
+        this.gamma = agentConfiguration.getGamma();
+        this.epsilon = agentConfiguration.getEpsilon();
+        this.epsilonDecay = agentConfiguration.getEpsilonDecay();
 
         this.qTable = new QTable<>(actions);
     }
