@@ -83,7 +83,7 @@ public class RubikEnvironment implements Environment<Action> {
     void shuffle(int numberOfShuffleMoves) {
         for (int i=0;i<numberOfShuffleMoves;i++) {
             int randomActionIndex = randoms.nextInt(Action.VALUES.length);
-            step(Action.VALUES[randomActionIndex]);
+            step(Action.VALUES[randomActionIndex], false);
         }
     }
 
@@ -169,6 +169,10 @@ public class RubikEnvironment implements Environment<Action> {
 
     @Override
     public ActionResult step(Action action) {
+        return step(action, true);
+    }
+
+    public ActionResult step(Action action, boolean checkFinalState) {
         switch (action) {
             case F: makeTurn(F_SHIFTS);
                 break;
@@ -180,10 +184,14 @@ public class RubikEnvironment implements Environment<Action> {
             default: throw new RuntimeException("Not implemented " + action);
         }
 
-        if (isFinalStateAchieved()) {
-            return new ActionResult(getState(), 10000, true);
+        if (checkFinalState) {
+            if (isFinalStateAchieved()) {
+                return new ActionResult(getState(), 10000, true);
+            } else {
+                return new ActionResult(getState(), 0, false);
+            }
         } else {
-            return new ActionResult(getState(), 0, false);
+            return null;
         }
 
     }
