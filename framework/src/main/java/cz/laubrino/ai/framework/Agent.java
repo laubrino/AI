@@ -1,5 +1,7 @@
 package cz.laubrino.ai.framework;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -11,8 +13,8 @@ public class Agent<A extends Enum<A>> {
 
     private volatile float epsilon;
     private final AtomicInteger learnsCounter = new AtomicInteger(0);
-
     private Random randoms = new Random();
+    private final List<AgentObserver> observers = new ArrayList<>();
 
     /**
      *
@@ -34,8 +36,10 @@ public class Agent<A extends Enum<A>> {
     void qLearn(State newS, float r, A a, State s) {
         if (s != null) {
             float oldQ = qTable.get(s, a);
-            short newQ = (short)(oldQ + alpha *(r + gamma * qTable.max(newS) - oldQ));
-            qTable.set(s, a, newQ);
+            float newQ = oldQ + alpha *(r + gamma * qTable.max(newS) - oldQ);
+            qTable.set(s, a, (short)newQ);
+
+            notifyQChange(oldQ, newQ);
 
             int i = learnsCounter.updateAndGet(operand -> {
                 if (operand >= 1000) {
@@ -47,6 +51,20 @@ public class Agent<A extends Enum<A>> {
 
             if (i == 0) {
                 epsilon *= epsilonDecay;
+            }
+        }
+    }
+
+    private void notifyQChange(float oldQ, float newQ) {
+        if (!observers.isEmpty()) {
+            try {
+                float absolute = Math.abs(newQ - oldQ);
+                int percent = (int)(absolute/oldQ*100);
+                for (AgentObserver observer : observers) {
+                    observer.qValueChanged(absolute, percent);
+                }
+            } catch (ArithmeticException e) {
+                // divide by zero
             }
         }
     }
@@ -84,5 +102,9 @@ public class Agent<A extends Enum<A>> {
 
     public void setEpsilon(float epsilon) {
         this.epsilon = epsilon;
+    }
+
+    public void addObserver(AgentObserver observer) {
+        this.observers.add(observer);
     }
 }
