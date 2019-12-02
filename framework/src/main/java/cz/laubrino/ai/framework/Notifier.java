@@ -27,6 +27,12 @@ class Notifier {
         }
     }
 
+    void notifyTestingBatchFinished(int successEpisodes, int allEpisodes) {
+        for (Observer observer : observers) {
+            observer.testingBatchFinished(successEpisodes, allEpisodes);
+        }
+    }
+
     void addObserver(Observer observer) {
         observers.add(observer);
     }

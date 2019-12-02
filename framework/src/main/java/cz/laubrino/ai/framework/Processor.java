@@ -10,16 +10,28 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
     private final long episodes;
     private final int maxStepsPerEpisode;
     private final int testingEpisodes;          // number of plays in each testing step during learning (may be 0)
+    private final float testingFrequency;
 
     private final Notifier notifier;
 
+    /**
+     *
+     * @param agentConfiguration
+     * @param environmentFactory
+     * @param episodes
+     * @param maxStepsPerEpisode
+     * @param testingFrequency e.g. 0.001 means test 1000x per whole process
+     * @param testingEpisodes number of testing episodes in each batch
+     * @param actions actions enum class
+     */
     public Processor(AgentConfiguration agentConfiguration, EnvironmentFactory<A> environmentFactory, long episodes,
-                     int maxStepsPerEpisode, int testingEpisodes, Class<A> actions) {
+                     int maxStepsPerEpisode, float testingFrequency, int testingEpisodes, Class<A> actions) {
         this.agent = new Agent<>(agentConfiguration, actions);
         this.environmentFactory = environmentFactory;
         this.episodes = episodes;
         this.maxStepsPerEpisode = maxStepsPerEpisode;
         this.testingEpisodes = testingEpisodes;
+        this.testingFrequency = testingFrequency;
 
         notifier = new Notifier();
         this.agent.addObserver(this);
@@ -59,6 +71,9 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
     }
 
 
+    boolean shouldTest(int episode) {
+        return (episode % ((int)(episodes*testingFrequency)) == 0);
+    }
 
     public void process() throws InterruptedException {
         int cores = Runtime.getRuntime().availableProcessors();
@@ -69,13 +84,12 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
         ExecutorService testingExecutorService = new ThreadPoolExecutor(cores+1, cores+1, 0L, TimeUnit.MILLISECONDS,
                 new ExecutorBlockingQueue());
 
-        for (int n = 0; n < episodes; n++) {
-            Worker worker = new Worker(agent, n);
+        for (int episode = 0; episode < episodes; episode++) {
+            Worker worker = new Worker(agent, episode);
             learningExecutorService.submit(worker);
 
-            if (n % (episodes/1000) == 0) {
-                int successPercentage = testAgent(agent, testingExecutorService);
-                System.out.println("successPercentage " + successPercentage);
+            if (shouldTest(episode)) {
+                testAgent(agent, testingExecutorService);
             }
         }
 
@@ -89,12 +103,13 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
      * Let an already trained agent to solve the puzzle
      * @return percent of solved puzzles
      */
-    int testAgent(Agent<A> agent, ExecutorService testingExecutorService) {
+    void testAgent(Agent<A> agent, ExecutorService testingExecutorService) {
         int successfulTests;
         List<Future<Boolean>> futures = new ArrayList<>(testingEpisodes);
 
         TesterWorker testerWorker = new TesterWorker(agent);
-        for (int n=0;n<testingEpisodes;n++) {
+        int n;
+        for (n=0;n<testingEpisodes;n++) {
             futures.add(testingExecutorService.submit(testerWorker));
         }
 
@@ -108,9 +123,7 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
             }
         }).count();
 
-
-        int percentage = (int)((float)successfulTests/(float)testingEpisodes * 100);
-        return percentage;
+        notifier.notifyTestingBatchFinished(successfulTests, n);
     }
 
     private class TesterWorker implements Callable<Boolean> {
@@ -121,21 +134,20 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
         }
 
         @Override
-        public Boolean call() {
+        public Boolean call() {     // no need to try-catch. Will be eventually reported on Future.get()
             Environment<A> environment = environmentFactory.getInstance();
             environment.reset();
 
-            int i;
-            for (i=0;i<maxStepsPerEpisode && !environment.isFinalStateAchieved();i++) {
+            int step;
+            boolean isDone = false;
+            for (step=0; step < maxStepsPerEpisode && !isDone; step++) {
                 A action = agent.chooseAction(environment.getState());
-                environment.step(action);
+                isDone = environment.step(action).isDone();
             }
 
-            boolean finalStateAchieved = environment.isFinalStateAchieved();
+            notifier.notifyTestingEpisodeFinished(isDone, step);
 
-            notifier.notifyTestingEpisodeFinished(finalStateAchieved, i);
-
-            return finalStateAchieved;
+            return isDone;
         }
     }
 

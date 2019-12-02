@@ -20,4 +20,11 @@ public interface Observer {
      */
     void testingEpisodeFinished(boolean success, long steps);
 
+    /**
+     * Triggered after each max-testing episodes
+     * @param successEpisodes
+     * @param allEpisodes
+     */
+    void testingBatchFinished(int successEpisodes, int allEpisodes);
+
 }
