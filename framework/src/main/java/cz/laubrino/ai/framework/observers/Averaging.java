@@ -6,7 +6,7 @@ package cz.laubrino.ai.framework.observers;
 class Averaging {
     private volatile float sum;
     private volatile int count;
-    private boolean shouldReset = true;
+    private volatile boolean shouldReset = true;
 
     public synchronized void add(float amount) {
         if (shouldReset) {
@@ -21,8 +21,13 @@ class Averaging {
     }
 
     public synchronized float getAverageAndMarkReset() {
-        float average = sum/count;
         shouldReset = true;
+
+        if (count == 0) {
+            return 0;
+        }
+
+        float average = sum/count;
         return average;
     }
 
