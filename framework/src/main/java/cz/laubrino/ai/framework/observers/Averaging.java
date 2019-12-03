@@ -1,14 +1,14 @@
-package cz.laubrino.ai.rubikovka;
+package cz.laubrino.ai.framework.observers;
 
 /**
  * @author tomas.laubr on 2.12.2019.
  */
-public class Averaging {
+class Averaging {
     private volatile float sum;
     private volatile int count;
     private boolean shouldReset = true;
 
-    public void add(float amount) {
+    public synchronized void add(float amount) {
         if (shouldReset) {
             reset();
         }
@@ -16,17 +16,17 @@ public class Averaging {
         count++;
     }
 
-    public float getAverage() {
+    public synchronized float getAverage() {
         return sum/count;
     }
 
-    public float getAverageAndMarkReset() {
+    public synchronized float getAverageAndMarkReset() {
         float average = sum/count;
         shouldReset = true;
         return average;
     }
 
-    public void reset() {
+    public synchronized void reset() {
         sum = 0;
         count = 0;
         shouldReset = false;

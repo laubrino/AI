@@ -1,4 +1,4 @@
-package cz.laubrino.ai.rubikovka;
+package cz.laubrino.ai.framework.observers;
 
 import cz.laubrino.ai.framework.Observer;
 
@@ -9,18 +9,21 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author tomas.laubr on 2.12.2019.
  */
-public class RubikObserver implements Observer {
+public class SysoutObserver implements Observer {
     private volatile long episode;
     private Averaging testingPercent;
+    private Averaging testingSteps;
+    private long previousEpisode = 0;
     private ScheduledExecutorService scheduledExecutorService;
 
-    public RubikObserver() {
+    public SysoutObserver() {
         testingPercent = new Averaging();
+        testingSteps = new Averaging();
         scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         scheduledExecutorService.scheduleAtFixedRate(this::sample, 0, 1, TimeUnit.SECONDS);
     }
 
-    public void shutDown() throws InterruptedException {
+    private void shutDown() throws InterruptedException {
         scheduledExecutorService.shutdownNow();
         scheduledExecutorService.awaitTermination(10, TimeUnit.SECONDS);
     }
@@ -37,7 +40,7 @@ public class RubikObserver implements Observer {
 
     @Override
     public void testingEpisodeFinished(boolean success, long steps) {
-
+        testingSteps.add(steps);
     }
 
     @Override
@@ -45,7 +48,21 @@ public class RubikObserver implements Observer {
         testingPercent.add((float)successEpisodes/allEpisodes*100);
     }
 
+    @Override
+    public void end() {
+        sample();
+        try {
+            shutDown();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+    }
+
     void sample() {
-        System.out.format("Episode %,d, testing success %d%%%n", episode, (int)testingPercent.getAverageAndMarkReset());
+        long episodesPerSecond = episode - previousEpisode;
+        previousEpisode = episode;
+        System.out.format("Episode %,d (%,d/s), testing success %d%% (%d steps needed)%n",
+                episode, episodesPerSecond, (int)testingPercent.getAverageAndMarkReset(), (int)testingSteps.getAverageAndMarkReset());
     }
 }

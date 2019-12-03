@@ -27,4 +27,8 @@ public interface Observer {
      */
     void testingBatchFinished(int successEpisodes, int allEpisodes);
 
+    /**
+     * Triggered on process end.
+     */
+    void end();
 }

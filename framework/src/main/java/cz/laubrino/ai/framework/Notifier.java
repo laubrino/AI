@@ -33,9 +33,16 @@ class Notifier {
         }
     }
 
+    void notifyProcessEnd(){
+        for (Observer observer : observers) {
+            observer.end();
+        }
+    }
+
     void addObserver(Observer observer) {
         observers.add(observer);
     }
+
 
 
 }

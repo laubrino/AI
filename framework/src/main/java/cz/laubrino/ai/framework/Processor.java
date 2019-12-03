@@ -97,6 +97,8 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
         testingExecutorService.shutdown();
         learningExecutorService.awaitTermination(1, TimeUnit.HOURS);
         testingExecutorService.awaitTermination(1,TimeUnit.HOURS);
+
+        notifier.notifyProcessEnd();
     }
 
     /**
