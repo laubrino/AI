@@ -107,7 +107,7 @@ public class ChartObserver implements Observer {
         ChartUtils.applyCurrentTheme(xyLineChart);
 
         // colors after applyCurrentTheme() !
-        xyPlot.getRenderer().setSeriesPaint(0, Color.GREEN);
+        xyPlot.getRenderer().setSeriesPaint(0, Color.decode("0x0036CC"));
         stepsRenderer.setSeriesPaint(0, Color.ORANGE);
 
         return xyLineChart;
