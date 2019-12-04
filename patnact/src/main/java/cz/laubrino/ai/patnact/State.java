@@ -5,7 +5,7 @@ import java.util.Arrays;
 /**
  * @author tomas.laubr on 30.10.2019.
  */
-public class State {
+public class State extends cz.laubrino.ai.framework.State {
     final byte[] bytes;
 
     public State(byte[] bytes) {

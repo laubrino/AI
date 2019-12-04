@@ -1,5 +1,8 @@
     package cz.laubrino.ai.patnact;
 
+import cz.laubrino.ai.framework.ActionResult;
+import cz.laubrino.ai.framework.Environment;
+
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
@@ -8,24 +11,24 @@ import java.util.Random;
 /**
  * @author tomas.laubr on 24.10.2019.
  */
-public class Environment {
-    public static final int BOARD_SIZE = 3;
+public class PatnactEnvironment implements Environment<Action> {
+    public static final int BOARD_SIZE = 4;
     byte[] board = new byte[BOARD_SIZE*BOARD_SIZE];
     private Random randoms = new Random();
 
-    public Environment() {
-        reset();
-    }
-
-    /**
-     * Reset but do not shuffle
-     */
-    void reset() {
+    public PatnactEnvironment() {
         for (int i=0;i<BOARD_SIZE*BOARD_SIZE-1;i++) {
             board[i] = (byte)(i+1);
         }
 
         board[BOARD_SIZE*BOARD_SIZE-1] = 0;     // the space
+    }
+
+    /**
+     * Reset but do not shuffle
+     */
+    public void reset() {
+        shuffle(1000);
     }
 
     /**
@@ -37,7 +40,8 @@ public class Environment {
         }
     }
 
-    boolean isFinalStateAchieved() {
+    @Override
+    public boolean isFinalStateAchieved() {
         for (int i=0;i<BOARD_SIZE*BOARD_SIZE-1;i++) {
             if (board[i] != (byte)(i+1)) {
                 return false;
@@ -47,7 +51,10 @@ public class Environment {
         return board[BOARD_SIZE*BOARD_SIZE-1] == 0;
     }
 
-    EnumSet<Action> getAvailableActions() {
+    public Action[] getAvailableActions() {
+        if (true) return Action.VALUES;             // TODO?
+
+
         EnumSet<Action> availableActions = EnumSet.noneOf(Action.class);
 
         int i;
@@ -72,14 +79,14 @@ public class Environment {
             availableActions.add(Action.MOVE_UP);
         }
 
-        return availableActions;
+        return availableActions.toArray(new Action[0]);
     }
 
     /**
      * Take no action if invalid move
      * @param action
      */
-    ActionResult step(Action action) {
+    public ActionResult step(Action action) {
         for (int i=0;i<BOARD_SIZE*BOARD_SIZE;i++) {
             if (board[i] == 0) {     // find the space
                 int j;
@@ -87,25 +94,25 @@ public class Environment {
                     case MOVE_UP:
                         j = i+BOARD_SIZE;
                         if (j>BOARD_SIZE*BOARD_SIZE-1) {
-                            return new ActionResult(getState(), -10f, true);      // invalid move
+                            return new ActionResult(getState(), -1000f, true);      // invalid move
                         }
                         break;
                     case MOVE_DOWN:
                         j = i-BOARD_SIZE;
                         if (j<0) {
-                            return new ActionResult(getState(), -10f, true);
+                            return new ActionResult(getState(), -1000f, true);
                         }
                         break;
                     case MOVE_LEFT:
                         j = i+1;
                         if (j/BOARD_SIZE != i/BOARD_SIZE || j>BOARD_SIZE*BOARD_SIZE-1) {
-                            return new ActionResult(getState(), -10f, true);
+                            return new ActionResult(getState(), -1000f, true);
                         }
                         break;
                     case MOVE_RIGHT:
                         j = i-1;
                         if (j/BOARD_SIZE != i/BOARD_SIZE || j<0) {
-                            return new ActionResult(getState(), -10f, true);
+                            return new ActionResult(getState(), -1000f, true);
                         }
                         break;
                     default:
@@ -119,7 +126,7 @@ public class Environment {
         }
 
         if (isFinalStateAchieved()) {
-            return new ActionResult(getState(), 10f, true);
+            return new ActionResult(getState(), 1000f, true);
         } else {
             return new ActionResult(getState(), 0f, false);
         }
@@ -150,7 +157,7 @@ public class Environment {
         return sb.toString();
     }
 
-    State getState() {
+    public State getState() {
         byte[] bytes = new byte[BOARD_SIZE*BOARD_SIZE];
         System.arraycopy(board, 0, bytes, 0, BOARD_SIZE*BOARD_SIZE);
         return new State(bytes);
