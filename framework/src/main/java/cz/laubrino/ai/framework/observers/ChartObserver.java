@@ -54,7 +54,7 @@ public class ChartObserver implements Observer {
 
     @Override
     public void testingBatchFinished(int successEpisodes, int allEpisodes) {
-        testSuccessSeries.add(episode, successEpisodes);
+        testSuccessSeries.add(episode, (int)((float)successEpisodes/allEpisodes*100));
     }
 
     @Override
