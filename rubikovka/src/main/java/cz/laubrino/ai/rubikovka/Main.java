@@ -6,7 +6,7 @@ import cz.laubrino.ai.framework.observers.ChartObserver;
 import cz.laubrino.ai.framework.observers.SysoutObserver;
 
 public class Main {
-    private static final long EPISODES = 1_000_000;
+    private static final long EPISODES = 2_000_000;
     private static final int MAX_STEPS_PER_EPISODE = 1_000;
     private static final int TESTING_EPIZODES = 100;        // number of plays in each testing step during learning
     private static final float TESTING_FREQ = 0.001f;
