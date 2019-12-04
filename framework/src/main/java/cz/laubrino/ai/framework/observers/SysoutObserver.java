@@ -19,13 +19,6 @@ public class SysoutObserver implements Observer {
     public SysoutObserver() {
         testingPercent = new Averaging();
         testingSteps = new Averaging();
-        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutorService.scheduleAtFixedRate(this::sample, 0, 1, TimeUnit.SECONDS);
-    }
-
-    private void shutDown() throws InterruptedException {
-        scheduledExecutorService.shutdownNow();
-        scheduledExecutorService.awaitTermination(10, TimeUnit.SECONDS);
     }
 
     @Override
@@ -50,13 +43,21 @@ public class SysoutObserver implements Observer {
 
     @Override
     public void end() {
-        sample();
         try {
-            shutDown();
+            scheduledExecutorService.shutdown();
+            scheduledExecutorService.awaitTermination(1, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
         }
+
+        sample();               // flush everything
+    }
+
+    @Override
+    public void start(StartConfiguration startConfiguration) {
+        System.out.format("Processing %,d episodes.%n", startConfiguration.getEpisodes());
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleAtFixedRate(this::sample, 0, 1, TimeUnit.SECONDS);
     }
 
     void sample() {

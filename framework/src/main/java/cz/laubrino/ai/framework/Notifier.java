@@ -39,6 +39,12 @@ class Notifier {
         }
     }
 
+    void notifyProcessStart(Observer.StartConfiguration startConfiguration) {
+        for (Observer observer : observers) {
+            observer.start(startConfiguration);
+        }
+    }
+
     void addObserver(Observer observer) {
         observers.add(observer);
     }

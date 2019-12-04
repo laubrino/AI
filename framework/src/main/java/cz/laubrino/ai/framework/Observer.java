@@ -31,4 +31,24 @@ public interface Observer {
      * Triggered on process end.
      */
     void end();
+
+    /**
+     * Notify process start, pass configuration
+     * @param startConfiguration
+     */
+    void start(StartConfiguration startConfiguration);
+
+    class StartConfiguration {
+        private final long episodes;
+
+        public StartConfiguration(long episodes) {
+            this.episodes = episodes;
+        }
+
+        public long getEpisodes() {
+            return episodes;
+        }
+    }
+
+
 }

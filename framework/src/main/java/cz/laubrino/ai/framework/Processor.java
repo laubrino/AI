@@ -84,6 +84,8 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
         ExecutorService testingExecutorService = new ThreadPoolExecutor(cores+1, cores+1, 0L, TimeUnit.MILLISECONDS,
                 new ExecutorBlockingQueue());
 
+        notifier.notifyProcessStart(new Observer.StartConfiguration(episodes));
+
         for (int episode = 0; episode < episodes; episode++) {
             Worker worker = new Worker(agent, episode);
             learningExecutorService.submit(worker);
