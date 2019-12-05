@@ -18,10 +18,10 @@ public class PatnactEnvironment implements Environment<Action> {
 
     public PatnactEnvironment() {
         for (int i=0;i<BOARD_SIZE*BOARD_SIZE-1;i++) {
-            board[i] = (byte)(i+1);
+            setBoard(i, (byte)(i+1));
         }
 
-        board[BOARD_SIZE*BOARD_SIZE-1] = 0;     // the space
+        setBoard(BOARD_SIZE*BOARD_SIZE-1, 0);     // the space
     }
 
     /**
@@ -29,6 +29,14 @@ public class PatnactEnvironment implements Environment<Action> {
      */
     public void reset() {
         shuffle(1000);
+    }
+
+    private void setBoard(int index, int value) {
+        board[index] = (byte)value;
+    }
+
+    private byte getBoard(int index) {
+        return board[index];
     }
 
     /**
@@ -43,12 +51,12 @@ public class PatnactEnvironment implements Environment<Action> {
     @Override
     public boolean isFinalStateAchieved() {
         for (int i=0;i<BOARD_SIZE*BOARD_SIZE-1;i++) {
-            if (board[i] != (byte)(i+1)) {
+            if (getBoard(i) != (byte)(i+1)) {
                 return false;
             }
         }
 
-        return board[BOARD_SIZE*BOARD_SIZE-1] == 0;
+        return getBoard(BOARD_SIZE*BOARD_SIZE-1) == 0;
     }
 
     public Action[] getAvailableActions() {
@@ -61,7 +69,7 @@ public class PatnactEnvironment implements Environment<Action> {
      */
     public ActionResult step(Action action) {
         for (int i=0;i<BOARD_SIZE*BOARD_SIZE;i++) {
-            if (board[i] == 0) {     // find the space
+            if (getBoard(i) == 0) {     // find the space
                 int j;
                 switch (action) {
                     case MOVE_UP:
@@ -92,8 +100,8 @@ public class PatnactEnvironment implements Environment<Action> {
                         throw new RuntimeException("WTF? " + action);
                 }
 
-                board[i] = board[j];
-                board[j] = 0;
+                setBoard(i, getBoard(j));
+                setBoard(j, 0);
                 break;
             }
         }
@@ -116,11 +124,11 @@ public class PatnactEnvironment implements Environment<Action> {
                 sb.append("\n|");
             }
 
-            val = board[i];
+            val = getBoard(i);
             if (val == 0) {
                 sb.append("  ");
             } else {
-                sb.append(String.format("%2d", board[i]));
+                sb.append(String.format("%2d", getBoard(i)));
             }
             sb.append("|");
         }
@@ -131,8 +139,8 @@ public class PatnactEnvironment implements Environment<Action> {
     }
 
     public State getState() {
-        byte[] bytes = new byte[BOARD_SIZE*BOARD_SIZE];
-        System.arraycopy(board, 0, bytes, 0, BOARD_SIZE*BOARD_SIZE);
+        byte[] bytes = new byte[board.length];
+        System.arraycopy(board, 0, bytes, 0, board.length);
         return new State(bytes);
     }
 }
