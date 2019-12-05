@@ -143,15 +143,18 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
             environment.reset();
 
             int step;
-            boolean isDone = false;
-            for (step=0; step < maxStepsPerEpisode && !isDone; step++) {
+            ActionResult actionResult = null;
+            for (step=0; step < maxStepsPerEpisode; step++) {
                 A action = agent.chooseAction(environment.getState());
-                isDone = environment.step(action).isDone();
+                actionResult = environment.step(action);
+                if (actionResult.isDone()) {
+                    break;
+                }
             }
 
-            notifier.notifyTestingEpisodeFinished(isDone, step);
+            notifier.notifyTestingEpisodeFinished(actionResult.getType() == ActionResult.Type.OK, step);
 
-            return isDone;
+            return actionResult.getType() == ActionResult.Type.OK;
         }
     }
 

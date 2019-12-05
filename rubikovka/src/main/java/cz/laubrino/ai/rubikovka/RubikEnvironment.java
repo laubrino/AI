@@ -186,9 +186,9 @@ public class RubikEnvironment implements Environment<Action> {
 
         if (checkFinalState) {
             if (isFinalStateAchieved()) {
-                return new ActionResult(getState(), 10000, true);
+                return new ActionResult(getState(), 10000, ActionResult.Type.OK);
             } else {
-                return new ActionResult(getState(), 0, false);
+                return new ActionResult(getState(), 0, ActionResult.Type.CONTINUE);
             }
         } else {
             return null;

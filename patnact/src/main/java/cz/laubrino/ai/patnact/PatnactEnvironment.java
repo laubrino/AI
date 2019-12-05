@@ -12,7 +12,7 @@ import java.util.Random;
  * @author tomas.laubr on 24.10.2019.
  */
 public class PatnactEnvironment implements Environment<Action> {
-    public static final int BOARD_SIZE = 4;
+    public static final int BOARD_SIZE = 3;
     byte[] board = new byte[BOARD_SIZE*BOARD_SIZE];
     private Random randoms = new Random();
 
@@ -52,34 +52,7 @@ public class PatnactEnvironment implements Environment<Action> {
     }
 
     public Action[] getAvailableActions() {
-        if (true) return Action.VALUES;             // TODO?
-
-
-        EnumSet<Action> availableActions = EnumSet.noneOf(Action.class);
-
-        int i;
-        for (i=0;i<BOARD_SIZE*BOARD_SIZE;i++) {
-            if (board[i] == 0) {     // find the space
-                break;
-            }
-        }
-        if ((i%BOARD_SIZE) > 0) {
-            availableActions.add(Action.MOVE_RIGHT);
-        }
-
-        if ((i%BOARD_SIZE) < BOARD_SIZE-1) {
-            availableActions.add(Action.MOVE_LEFT);
-        }
-
-        if (i/BOARD_SIZE > 0) {
-            availableActions.add(Action.MOVE_DOWN);
-        }
-
-        if (i/BOARD_SIZE < BOARD_SIZE-1) {
-            availableActions.add(Action.MOVE_UP);
-        }
-
-        return availableActions.toArray(new Action[0]);
+        return Action.VALUES;               // always return all actions, no matter what state. Agent will learn valid actions
     }
 
     /**
@@ -94,25 +67,25 @@ public class PatnactEnvironment implements Environment<Action> {
                     case MOVE_UP:
                         j = i+BOARD_SIZE;
                         if (j>BOARD_SIZE*BOARD_SIZE-1) {
-                            return new ActionResult(getState(), -1000f, true);      // invalid move
+                            return new ActionResult(getState(), -1000f, ActionResult.Type.FAIL);      // invalid move
                         }
                         break;
                     case MOVE_DOWN:
                         j = i-BOARD_SIZE;
                         if (j<0) {
-                            return new ActionResult(getState(), -1000f, true);
+                            return new ActionResult(getState(), -1000f, ActionResult.Type.FAIL);
                         }
                         break;
                     case MOVE_LEFT:
                         j = i+1;
                         if (j/BOARD_SIZE != i/BOARD_SIZE || j>BOARD_SIZE*BOARD_SIZE-1) {
-                            return new ActionResult(getState(), -1000f, true);
+                            return new ActionResult(getState(), -1000f, ActionResult.Type.FAIL);
                         }
                         break;
                     case MOVE_RIGHT:
                         j = i-1;
                         if (j/BOARD_SIZE != i/BOARD_SIZE || j<0) {
-                            return new ActionResult(getState(), -1000f, true);
+                            return new ActionResult(getState(), -1000f, ActionResult.Type.FAIL);
                         }
                         break;
                     default:
@@ -126,9 +99,9 @@ public class PatnactEnvironment implements Environment<Action> {
         }
 
         if (isFinalStateAchieved()) {
-            return new ActionResult(getState(), 1000f, true);
+            return new ActionResult(getState(), 1000f, ActionResult.Type.OK);
         } else {
-            return new ActionResult(getState(), 0f, false);
+            return new ActionResult(getState(), 0f, ActionResult.Type.CONTINUE);
         }
     }
 

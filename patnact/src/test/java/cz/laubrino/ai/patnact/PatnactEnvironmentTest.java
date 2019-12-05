@@ -51,26 +51,19 @@ class PatnactEnvironmentTest {
         System.out.println(patnactEnvironment);
         System.out.println(patnactEnvironment.getState());
 
-        EnumSet<Action> availableActions = EnumSet.copyOf(Arrays.asList(patnactEnvironment.getAvailableActions()));
-        assertEquals(3, availableActions.size());
-        assertFalse(availableActions.contains(Action.MOVE_LEFT));
-
         ActionResult actionResult = patnactEnvironment.step(Action.MOVE_LEFT);
         assertTrue(actionResult.getReward() < 0);   // invalid move
+        assertTrue(actionResult.isDone());
+        assertEquals(ActionResult.Type.FAIL, actionResult.getType());
         System.out.println(patnactEnvironment);
         System.out.println(patnactEnvironment.getState());
 
         actionResult = patnactEnvironment.step(Action.MOVE_UP);
         assertTrue(actionResult.getReward() > 0);
         assertTrue(actionResult.isDone());
+        assertEquals(ActionResult.Type.OK, actionResult.getType());
         System.out.println(patnactEnvironment);
         System.out.println(patnactEnvironment.getState());
-
-        availableActions = EnumSet.copyOf(Arrays.asList(patnactEnvironment.getAvailableActions()));
-        assertEquals(2, availableActions.size());
-        assertTrue(availableActions.contains(Action.MOVE_DOWN));
-        assertTrue(availableActions.contains(Action.MOVE_RIGHT));
-
     }
 
     @Test
