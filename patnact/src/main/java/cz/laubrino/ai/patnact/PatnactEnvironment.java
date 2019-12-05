@@ -12,8 +12,8 @@ import java.util.Random;
  * @author tomas.laubr on 24.10.2019.
  */
 public class PatnactEnvironment implements Environment<Action> {
-    public static final int BOARD_SIZE = 3;
-    byte[] board = new byte[BOARD_SIZE*BOARD_SIZE];
+    public static final int BOARD_SIZE = 4;                 // 3 or 4, no more
+    byte[] board = new byte[(BOARD_SIZE*BOARD_SIZE+1)/2];
     private Random randoms = new Random();
 
     public PatnactEnvironment() {
@@ -32,11 +32,22 @@ public class PatnactEnvironment implements Environment<Action> {
     }
 
     private void setBoard(int index, int value) {
-        board[index] = (byte)value;
+        int arrayIndex = index/2;
+        if ((index & 1) == 1) {
+            value = value << 4;
+            board[arrayIndex] = (byte)(board[arrayIndex] & 0x0F | value);
+        } else {
+            board[arrayIndex] = (byte)(board[arrayIndex] & 0xF0 | value);
+        }
     }
 
     private byte getBoard(int index) {
-        return board[index];
+        int arrayIndex = index/2;
+        if ((index & 1) == 1) {
+            return (byte)((board[arrayIndex] & 0xF0) >> 4);
+        } else {
+            return (byte)(board[arrayIndex] & 0x0F);
+        }
     }
 
     /**
