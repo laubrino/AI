@@ -10,8 +10,8 @@ import java.util.*;
  * @author tomas.laubr on 26.11.2019.
  */
 class QTable<A extends Enum<A>> {
-    private final A[] actions;
-    private Map<State, short[]> qTable = Collections.synchronizedMap(new HashMap<>());
+    final A[] actions;
+    Map<State, short[]> qTable = Collections.synchronizedMap(new HashMap<>());
     private Random randoms = new Random();
 
     QTable(Class<A> actions) {
@@ -23,12 +23,8 @@ class QTable<A extends Enum<A>> {
         values[action.ordinal()] = value;
     }
 
-    private short[] getOrInit(State state) {
-        return qTable.computeIfAbsent(state, k -> {
-            short[] vals = new short[actions.length];
-            Arrays.fill(vals, (short)0);
-            return vals;
-        });
+    short[] getOrInit(State state) {
+        return qTable.computeIfAbsent(state, k -> new short[actions.length]);
     }
 
 

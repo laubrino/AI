@@ -116,7 +116,7 @@ public class ChartObserver implements Observer {
         xyPlot.setRenderer(2, deltQRenderer);
         deltQRenderer.setSeriesPaint(0, Color.ORANGE);
 
-        xyPlot.getRenderer().setSeriesPaint(0, Color.decode("0x0036CC"));
+        xyPlot.getRenderer().setSeriesPaint(0, Color.RED);
 
         ChartPanel chartPanel = new ChartPanel(xyLineChart);
         chartPanel.setMouseWheelEnabled(true);
