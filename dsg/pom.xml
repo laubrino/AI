@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cz.laubrino.ai.dsg</groupId>
+    <artifactId>dsg</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <description>David's Simple Game
+        This applet shows how a simple game on a 5x5 grid. The agent (shown as a circle) can move up, down, left or right.
+        The Game
+
+        There can be a prize at one of the 4 corners (the prize shown in the color cyan when it is there). When the agent lands on a prize it gets a reward of +10 and the prize disappears. When there is no prize, a prize can appear randomly at one of the 4 corners. The prize stays there until the agent lands on it.
+
+        There are 5 locations where monsters can appear randomly. The monsters are shown as red in the square. If a monster appears when the agent is at that location, the agent gets damaged if it wasn't already damaged. If it was damaged, the agent has a penalty of 10 (i.e., a reward of -10). The monsters are at the locations independently at each time. The agent can get repaired by visiting the repair station (second to left location on the top row, shown in magenta). The agent is yellow when it isn't damaged and is pink when it is damaged.
+
+        There are 4 actions available to the agent: up, down, left and right. If the agent carries out one of these actions, it have a 0.7 chance of going one step in the desired direction and a 0.1 change in going one step in any of the other three directions. If it bumps into the outside wall or an inside wall (i.e., the square computed as above is outside the grid or through an internal wall), there is a penalty on 1 (i.e., a reward of -1) and the agent doesn't actually move.
+
+        This is a difficult game to learn to play well. All visiting the repair location does is to change the damage status. Initially it does not know that being damaged is bad. It has to learn that being damaged leads to worse outcomes that not being damaged. To learn this it has to be undamaged for long enough to realize that it is good to be undamaged. After this, it has to visit the repair station enough to determine the value of the repair. That is, it has to explore enough to determine the value of getting repaired.
+
+        See https://artint.info/2e/html/ArtInt2e.Ch12.S1.html#Ch12.Thmciexamplered2
+    </description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        <dependency>
+            <groupId>cz.laubrino.ai.framework</groupId>
+            <artifactId>framework</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.5.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.5.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+</project>
