@@ -30,7 +30,7 @@ public class ActionResult {
     }
 
     public boolean isDone() {
-        return type == Type.OK || type == Type.FAIL;
+        return type == Type.DONE_SUCCESS || type == Type.DONE_FAILED;
     }
 
     public String getInfo() {
@@ -56,6 +56,17 @@ public class ActionResult {
     }
 
     public enum Type {
-        OK, FAIL, CONTINUE
+        /**
+         * Epizode end with success (e.g. Rubik's cube is solved)
+         */
+        DONE_SUCCESS,
+        /**
+         * Epizode end with fail (e.g. we did an illegal move)
+         */
+        DONE_FAILED,
+        /**
+         * Epizode continues
+         */
+        CONTINUE
     }
 }

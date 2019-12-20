@@ -152,9 +152,9 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
                 }
             }
 
-            notifier.notifyTestingEpisodeFinished(actionResult.getType() == ActionResult.Type.OK, step);
+            notifier.notifyTestingEpisodeFinished(actionResult.getType() == ActionResult.Type.DONE_SUCCESS, step);
 
-            return actionResult.getType() == ActionResult.Type.OK;
+            return actionResult.getType() == ActionResult.Type.DONE_SUCCESS;
         }
     }
 
