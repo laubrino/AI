@@ -21,15 +21,15 @@ class Notifier {
         }
     }
 
-    void notifyTestingEpisodeFinished(boolean success, long steps) {
+    void notifyTestingEpisodeFinished(ActionResult actionResult, long steps) {
         for (Observer observer : observers) {
-            observer.testingEpisodeFinished(success, steps);
+            observer.testingEpisodeFinished(actionResult, steps);
         }
     }
 
-    void notifyTestingBatchFinished(int successEpisodes, int allEpisodes) {
+    void notifyTestingBatchFinished(int successEpisodes, int allEpisodes, float minReward, float maxReward, float averageReward) {
         for (Observer observer : observers) {
-            observer.testingBatchFinished(successEpisodes, allEpisodes);
+            observer.testingBatchFinished(successEpisodes, allEpisodes, minReward, maxReward, averageReward);
         }
     }
 

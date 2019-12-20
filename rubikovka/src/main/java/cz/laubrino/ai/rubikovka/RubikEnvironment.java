@@ -56,7 +56,6 @@ public class RubikEnvironment implements Environment<Action> {
         }
     }
 
-    @Override
     public boolean isFinalStateAchieved() {
         return isFaceSameColor(0,1,2,3) && isFaceSameColor(4,5,12,13) && isFaceSameColor(6,7,14,15) && isFaceSameColor(8,9,16,17)
                 && isFaceSameColor(10,11,18,19) && isFaceSameColor(20,21,22,23);
@@ -186,7 +185,7 @@ public class RubikEnvironment implements Environment<Action> {
 
         if (checkFinalState) {
             if (isFinalStateAchieved()) {
-                return new ActionResult(getState(), 10000, ActionResult.Type.OK);
+                return new ActionResult(getState(), 10000, ActionResult.Type.DONE_SUCCESS);
             } else {
                 return new ActionResult(getState(), 0, ActionResult.Type.CONTINUE);
             }

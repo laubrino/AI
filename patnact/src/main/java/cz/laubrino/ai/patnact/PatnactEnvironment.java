@@ -28,7 +28,7 @@ public class PatnactEnvironment implements Environment<Action> {
      * Reset but do not shuffle
      */
     public void reset() {
-        shuffle(1000);
+        shuffle(1000 / (randoms.nextInt(100)+1));
     }
 
     private void setBoard(int index, int value) {

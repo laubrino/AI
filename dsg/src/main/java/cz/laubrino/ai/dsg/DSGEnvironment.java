@@ -187,15 +187,10 @@ public class DSGEnvironment implements Environment<Action> {
         currY = newY;
 
         if (totalReward > TARGET_REWARD) {
-            return new ActionResult(new State(currX, currY, damaged, prize), (float)reward, ActionResult.Type.OK);
+            return new ActionResult(new State(currX, currY, damaged, prize), (float)reward, ActionResult.Type.DONE_SUCCESS);
         } else {
             return new ActionResult(new State(currX, currY, damaged, prize), (float)reward, ActionResult.Type.CONTINUE);
         }
-    }
-
-    @Override
-    public boolean isFinalStateAchieved() {
-        return false;
     }
 
     @Override

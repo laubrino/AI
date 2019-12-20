@@ -1,5 +1,6 @@
 package cz.laubrino.ai.framework.observers;
 
+import cz.laubrino.ai.framework.ActionResult;
 import cz.laubrino.ai.framework.Observer;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -48,12 +49,12 @@ public class ChartObserver implements Observer {
     }
 
     @Override
-    public void testingEpisodeFinished(boolean success, long steps) {
+    public void testingEpisodeFinished(ActionResult actionResult, long steps) {
         testingSteps.add(steps);
     }
 
     @Override
-    public void testingBatchFinished(int successEpisodes, int allEpisodes) {
+    public void testingBatchFinished(int successEpisodes, int allEpisodes, float minReward, float maxReward, float averageReward) {
         testSuccessSeries.add(episode, (int)((float)successEpisodes/allEpisodes*100));
     }
 

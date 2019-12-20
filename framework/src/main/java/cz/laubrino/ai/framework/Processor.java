@@ -108,8 +108,7 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
      * @return percent of solved puzzles
      */
     void testAgent(Agent<A> agent, ExecutorService testingExecutorService) {
-        int successfulTests;
-        List<Future<Boolean>> futures = new ArrayList<>(testingEpisodes);
+        List<Future<ActionResult>> futures = new ArrayList<>(testingEpisodes);
 
         TesterWorker testerWorker = new TesterWorker(agent);
         int n;
@@ -117,20 +116,34 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
             futures.add(testingExecutorService.submit(testerWorker));
         }
 
-        successfulTests = (int)futures.stream().filter(booleanFuture -> {
+        float totalReward = 0;
+        float minReward = Float.MAX_VALUE;
+        float maxReward = Float.MIN_VALUE;
+        int successfulTests = 0;
+        for (Future<ActionResult> future : futures) {
             try {
-                return booleanFuture.get();
+                ActionResult actionResult = future.get();
+                if (actionResult.isDone()) {
+                    successfulTests++;
+                }
+                float reward = actionResult.getReward();
+                totalReward += reward;
+                if (reward < minReward) {
+                    minReward = reward;
+                }
+                if (reward > maxReward) {
+                    maxReward = reward;
+                }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
                 Thread.currentThread().interrupt();
-                return false;
             }
-        }).count();
+        }
 
-        notifier.notifyTestingBatchFinished(successfulTests, n);
+        notifier.notifyTestingBatchFinished(successfulTests, n, minReward, maxReward, totalReward/futures.size());
     }
 
-    private class TesterWorker implements Callable<Boolean> {
+    private class TesterWorker implements Callable<ActionResult> {
         private final Agent<A> agent;
 
         private TesterWorker(Agent<A> agent) {
@@ -138,7 +151,7 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
         }
 
         @Override
-        public Boolean call() {     // no need to try-catch. Will be eventually reported on Future.get()
+        public ActionResult call() {     // no need to try-catch. Will be eventually reported on Future.get()
             Environment<A> environment = environmentFactory.getInstance();
             environment.reset();
 
@@ -152,9 +165,9 @@ public class Processor<A extends Enum<A>> implements AgentObserver {
                 }
             }
 
-            notifier.notifyTestingEpisodeFinished(actionResult.getType() == ActionResult.Type.DONE_SUCCESS, step);
+            notifier.notifyTestingEpisodeFinished(actionResult, step);
 
-            return actionResult.getType() == ActionResult.Type.DONE_SUCCESS;
+            return actionResult;
         }
     }
 

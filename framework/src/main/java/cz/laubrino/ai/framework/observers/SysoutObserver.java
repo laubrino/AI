@@ -1,5 +1,6 @@
 package cz.laubrino.ai.framework.observers;
 
+import cz.laubrino.ai.framework.ActionResult;
 import cz.laubrino.ai.framework.Observer;
 
 import java.util.concurrent.Executors;
@@ -11,15 +12,13 @@ import java.util.concurrent.TimeUnit;
  */
 public class SysoutObserver implements Observer {
     private volatile long episode;
-    private Averaging testingPercent;
-    private Averaging testingSteps;
+    private final Averaging testingPercent = new Averaging();
+    private final Averaging testingSteps = new Averaging();
+    private final Averaging testingAverageReward = new Averaging();
+    private final Averaging testingMinReward = new Averaging();
+    private final Averaging testingMaxReward = new Averaging();
     private long previousEpisode = 0;
     private ScheduledExecutorService scheduledExecutorService;
-
-    public SysoutObserver() {
-        testingPercent = new Averaging();
-        testingSteps = new Averaging();
-    }
 
     @Override
     public void qValueChanged(float deltaQ, int deltaQInPercent) {
@@ -32,13 +31,16 @@ public class SysoutObserver implements Observer {
     }
 
     @Override
-    public void testingEpisodeFinished(boolean success, long steps) {
+    public void testingEpisodeFinished(ActionResult actionResult, long steps) {
         testingSteps.add(steps);
     }
 
     @Override
-    public void testingBatchFinished(int successEpisodes, int allEpisodes) {
+    public void testingBatchFinished(int successEpisodes, int allEpisodes, float minReward, float maxReward, float averageReward) {
         testingPercent.add((float)successEpisodes/allEpisodes*100);
+        testingAverageReward.add(averageReward);
+        testingMinReward.add(minReward);
+        testingMaxReward.add(maxReward);
     }
 
     @Override
@@ -63,7 +65,8 @@ public class SysoutObserver implements Observer {
     void sample() {
         long episodesPerSecond = episode - previousEpisode;
         previousEpisode = episode;
-        System.out.format("Episode %,d (%,d/s), testing success %d%% (%d steps needed)%n",
-                episode, episodesPerSecond, (int)testingPercent.getAverageAndMarkReset(), (int)testingSteps.getAverageAndMarkReset());
+        System.out.format("Episode %,d (%,d/s), testing success %d%% (%d steps needed), average reward %.2f (min. %.2f, max. %.2f)%n",
+                episode, episodesPerSecond, (int)testingPercent.getAverageAndMarkReset(), (int)testingSteps.getAverageAndMarkReset(),
+                testingAverageReward.getAverageAndMarkReset(), testingMinReward.getAverageAndMarkReset(), testingMaxReward.getAverageAndMarkReset());
     }
 }

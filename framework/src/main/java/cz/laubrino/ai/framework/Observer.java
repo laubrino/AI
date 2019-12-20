@@ -18,14 +18,14 @@ public interface Observer {
     /**
      * @param steps steps necessary to finish the episode
      */
-    void testingEpisodeFinished(boolean success, long steps);
+    void testingEpisodeFinished(ActionResult actionResult, long steps);
 
     /**
      * Triggered after each max-testing episodes
      * @param successEpisodes
      * @param allEpisodes
      */
-    void testingBatchFinished(int successEpisodes, int allEpisodes);
+    void testingBatchFinished(int successEpisodes, int allEpisodes, float minReward, float maxReward, float averageReward);
 
     /**
      * Triggered on process end.
