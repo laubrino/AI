@@ -42,7 +42,7 @@
         <dependency>
             <groupId>cz.laubrino.ai.framework</groupId>
             <artifactId>framework</artifactId>
-            <version>1.1-SNAPSHOT</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.jfree</groupId>

@@ -15,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) throws InterruptedException {
 
-        Processor<Action> processor = new Processor<>(new AgentConfiguration(0.1f, 0.9f, 0.99995f, 1f), DSGEnvironment::new,
+        Processor<Action> processor = new Processor<>(new AgentConfiguration(1f, 0.999999f, 0.9f, 1f, 0.999999f), DSGEnvironment::new,
                 EPISODES, MAX_STEPS_PER_EPISODE, 0.01f, 100, Action.class);
 
         processor.addObserver(new SysoutObserver());

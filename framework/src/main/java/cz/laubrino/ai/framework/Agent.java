@@ -6,26 +6,23 @@ import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Agent<A extends Enum<A>> {
-    private final float alpha;
+    private final float alphaDecay;
     private final float gamma;
     private final float epsilonDecay;
     private final QTable<A> qTable;
 
+    private volatile float alpha;
     private volatile float epsilon;
     private final AtomicInteger learnsCounter = new AtomicInteger(0);
     private Random randoms = new Random();
     private final List<AgentObserver> observers = new ArrayList<>();
 
     /**
-     *
-     * @param alpha learning rate (0..1)
-     * @param gamma discount factor (0..1)
-     * @param epsilon initial epsilon (0..1)
-     * @param epsilonDecay (0..1)  e.g. 0.99995f. Or 1 for no decay.
      * @param actions actions enum
      */
     public Agent(AgentConfiguration agentConfiguration, Class<A> actions) {
         this.alpha = agentConfiguration.getAlpha();
+        this.alphaDecay = agentConfiguration.getAlphaDecay();
         this.gamma = agentConfiguration.getGamma();
         this.epsilon = agentConfiguration.getEpsilon();
         this.epsilonDecay = agentConfiguration.getEpsilonDecay();
@@ -51,6 +48,7 @@ public class Agent<A extends Enum<A>> {
 
             if (i == 0) {
                 epsilon *= epsilonDecay;
+                alpha *= alphaDecay;
             }
         }
     }

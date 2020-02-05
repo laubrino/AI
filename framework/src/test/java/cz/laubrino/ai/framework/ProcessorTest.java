@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ProcessorTest {
     @Test
     void testShouldTest() {
-        AgentConfiguration agentConfiguration = new AgentConfiguration(0f, 0f, 0f, 0f);
+        AgentConfiguration agentConfiguration = new AgentConfiguration(0f, 0f, 0f, 0f, 0f);
         Processor p = new Processor(agentConfiguration, null, 1_000_000, 1000, 0.001f, 100, EnumSet.class);
 
         assertFalse(p.shouldTest(999));
